@@ -15,8 +15,8 @@
       {
         "label": "main",
         "title": "桌面小怪兽",
-        "width": 260,
-        "height": 260,
+        "width": 300,
+        "height": 330,
         "decorations": false,
         "transparent": true,
         "resizable": false,

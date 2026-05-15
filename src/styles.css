@@ -31,15 +31,18 @@ body {
   display: grid;
   width: 100vw;
   height: 100vh;
+  grid-template-rows: 1fr auto auto;
   place-items: center;
+  padding: 16px 14px 12px;
   user-select: none;
 }
 
 .pet-stage {
   position: relative;
   display: grid;
-  width: min(72vw, 190px);
+  width: min(62vw, 146px);
   aspect-ratio: 1;
+  align-self: end;
   place-items: center;
 }
 
@@ -58,6 +61,38 @@ body {
     inset -10px -14px 0 rgba(12, 88, 88, 0.18),
     0 16px 26px rgba(7, 33, 38, 0.18);
   animation: pet-breathe 2.7s ease-in-out infinite;
+}
+
+.is-focused .pet-body {
+  animation: pet-focused 1.7s ease-in-out infinite;
+}
+
+.is-stressed .pet-body {
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.7), transparent 20%),
+    linear-gradient(145deg, #ffd16b 0%, #f59f48 56%, #c76a33 100%);
+  animation: pet-stressed 0.34s linear infinite;
+}
+
+.is-overheated .pet-body {
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.68), transparent 20%),
+    linear-gradient(145deg, #ff8d7a 0%, #f05a55 54%, #bb2f45 100%);
+  animation: pet-overheated 0.22s linear infinite;
+}
+
+.is-sleepy .pet-body {
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.72), transparent 20%),
+    linear-gradient(145deg, #b9e6ff 0%, #73b8de 58%, #527cae 100%);
+  animation: pet-sleepy 3.4s ease-in-out infinite;
+}
+
+.is-sleeping .pet-body {
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.66), transparent 20%),
+    linear-gradient(145deg, #a8c9f7 0%, #7896d2 58%, #5e6fa5 100%);
+  animation: pet-sleeping 4s ease-in-out infinite;
 }
 
 .pet-ear {
@@ -85,9 +120,66 @@ body {
   z-index: 1;
   padding-top: 8%;
   color: #102023;
-  font-size: clamp(1.5rem, 14vw, 2.75rem);
+  font-size: clamp(1.35rem, 11vw, 2.35rem);
   font-weight: 800;
   line-height: 1;
+}
+
+.pet-sweat {
+  position: absolute;
+  z-index: 2;
+  display: none;
+  width: 10%;
+  aspect-ratio: 0.68;
+  border: 2px solid #182024;
+  border-radius: 60% 60% 60% 8%;
+  background: #9fe8ff;
+  transform: rotate(22deg);
+}
+
+.pet-sweat-left {
+  top: 31%;
+  left: 13%;
+}
+
+.pet-sweat-right {
+  top: 26%;
+  right: 9%;
+}
+
+.is-stressed .pet-sweat-left,
+.is-overheated .pet-sweat-left,
+.is-overheated .pet-sweat-right {
+  display: block;
+  animation: pet-sweat-drop 0.8s ease-in-out infinite;
+}
+
+.is-overheated .pet-sweat-right {
+  animation-delay: 0.22s;
+}
+
+.pet-sleep-bubble {
+  position: absolute;
+  top: -22%;
+  right: -3%;
+  z-index: 3;
+  display: none;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #182024;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #182024;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.is-sleeping .pet-sleep-bubble {
+  display: flex;
+  animation: pet-sleep-bubble 2.6s ease-in-out infinite;
 }
 
 .pet-shadow {
@@ -102,7 +194,7 @@ body {
 
 .pet-status {
   min-width: 74px;
-  margin-top: -18px;
+  margin-top: -8px;
   padding: 6px 10px;
   border: 2px solid rgba(24, 32, 36, 0.84);
   border-radius: 999px;
@@ -115,6 +207,44 @@ body {
   backdrop-filter: blur(10px);
 }
 
+.pet-debug-panel {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  width: min(100%, 232px);
+  margin-top: 10px;
+  padding: 7px;
+  border: 2px solid rgba(24, 32, 36, 0.72);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.pet-debug-button {
+  min-width: 62px;
+  min-height: 26px;
+  border: 1px solid rgba(24, 32, 36, 0.34);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.58);
+  color: #182024;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pet-debug-button:hover {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.pet-debug-button[aria-pressed="true"] {
+  border-color: #182024;
+  background: #182024;
+  color: #ffffff;
+}
+
 @keyframes pet-breathe {
   0%,
   100% {
@@ -125,5 +255,98 @@ body {
   50% {
     translate: 0 -5px;
     scale: 1.025 0.985;
+  }
+}
+
+@keyframes pet-focused {
+  0%,
+  100% {
+    translate: 0 -2px;
+    scale: 1.02;
+  }
+
+  50% {
+    translate: 0 -9px;
+    scale: 1.04 0.98;
+  }
+}
+
+@keyframes pet-stressed {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: -1deg;
+  }
+
+  50% {
+    translate: 2px -1px;
+    rotate: 1deg;
+  }
+}
+
+@keyframes pet-overheated {
+  0%,
+  100% {
+    translate: -2px 0;
+    rotate: -2deg;
+  }
+
+  50% {
+    translate: 3px -2px;
+    rotate: 2deg;
+  }
+}
+
+@keyframes pet-sleepy {
+  0%,
+  100% {
+    translate: 0 4px;
+    scale: 0.98 1.02;
+  }
+
+  50% {
+    translate: 0 10px;
+    scale: 1.02 0.96;
+  }
+}
+
+@keyframes pet-sleeping {
+  0%,
+  100% {
+    translate: 0 8px;
+    scale: 1 0.94;
+  }
+
+  50% {
+    translate: 0 10px;
+    scale: 1.02 0.92;
+  }
+}
+
+@keyframes pet-sweat-drop {
+  0%,
+  100% {
+    opacity: 0.5;
+    translate: 0 -1px;
+  }
+
+  50% {
+    opacity: 1;
+    translate: 0 4px;
+  }
+}
+
+@keyframes pet-sleep-bubble {
+  0%,
+  100% {
+    opacity: 0.4;
+    scale: 0.8;
+    translate: 0 5px;
+  }
+
+  50% {
+    opacity: 1;
+    scale: 1;
+    translate: 5px -5px;
   }
 }
