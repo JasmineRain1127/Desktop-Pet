@@ -3,17 +3,16 @@ import { petMoodConfigs, petMoodOrder, type PetMood } from "./petMood";
 import {
   deriveMoodFromSensors,
   formatIdleSeconds,
-  getNextSensorSnapshot,
   initialSensorSnapshot,
   type PetSensorSnapshot
 } from "./petSimulation";
+import { listenToSensorSnapshots } from "./petSensorBridge";
 
 type DebugMode = "auto" | "manual";
 
 export function PetWindow() {
   const [debugMode, setDebugMode] = useState<DebugMode>("auto");
   const [manualMood, setManualMood] = useState<PetMood>("idle");
-  const [simulationFrame, setSimulationFrame] = useState(0);
   const [sensorSnapshot, setSensorSnapshot] = useState<PetSensorSnapshot>(
     initialSensorSnapshot
   );
@@ -26,20 +25,8 @@ export function PetWindow() {
   );
 
   useEffect(() => {
-    setSensorSnapshot(getNextSensorSnapshot(simulationFrame));
-  }, [simulationFrame]);
-
-  useEffect(() => {
-    if (debugMode !== "auto") {
-      return undefined;
-    }
-
-    const timer = window.setInterval(() => {
-      setSimulationFrame((currentFrame) => currentFrame + 1);
-    }, 1000);
-
-    return () => window.clearInterval(timer);
-  }, [debugMode]);
+    return listenToSensorSnapshots(setSensorSnapshot);
+  }, []);
 
   return (
     <main className={shellClassName} aria-label="桌面小怪兽">

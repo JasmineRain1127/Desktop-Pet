@@ -1,3 +1,5 @@
+mod sensors;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -62,6 +64,8 @@ pub fn run() {
                         }
                     });
                 }
+
+                sensors::start_mock_sensor_events(app.handle().clone());
             }
 
             Ok(())
