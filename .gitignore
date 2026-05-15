@@ -1,0 +1,21 @@
+.DS_Store
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+npm-debug.log*
+
+# Tauri / Rust
+src-tauri/gen/schemas/
+src-tauri/target/
+target/
+
+# Local env
+.env
+.env.local
+.env.*.local
+
+# Editor
+.idea/
+.vscode/
