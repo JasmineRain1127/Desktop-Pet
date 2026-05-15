@@ -1,13 +1,45 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { petMoodConfigs, petMoodOrder, type PetMood } from "./petMood";
+import {
+  deriveMoodFromSensors,
+  formatIdleSeconds,
+  getNextSensorSnapshot,
+  initialSensorSnapshot,
+  type PetSensorSnapshot
+} from "./petSimulation";
+
+type DebugMode = "auto" | "manual";
 
 export function PetWindow() {
-  const [mood, setMood] = useState<PetMood>("idle");
-  const moodConfig = petMoodConfigs[mood];
+  const [debugMode, setDebugMode] = useState<DebugMode>("auto");
+  const [manualMood, setManualMood] = useState<PetMood>("idle");
+  const [simulationFrame, setSimulationFrame] = useState(0);
+  const [sensorSnapshot, setSensorSnapshot] = useState<PetSensorSnapshot>(
+    initialSensorSnapshot
+  );
+  const automaticMood = deriveMoodFromSensors(sensorSnapshot);
+  const activeMood = debugMode === "auto" ? automaticMood : manualMood;
+  const moodConfig = petMoodConfigs[activeMood];
   const shellClassName = useMemo(
     () => `pet-shell ${moodConfig.className}`,
     [moodConfig.className]
   );
+
+  useEffect(() => {
+    setSensorSnapshot(getNextSensorSnapshot(simulationFrame));
+  }, [simulationFrame]);
+
+  useEffect(() => {
+    if (debugMode !== "auto") {
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => {
+      setSimulationFrame((currentFrame) => currentFrame + 1);
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [debugMode]);
 
   return (
     <main className={shellClassName} aria-label="桌面小怪兽">
@@ -24,15 +56,50 @@ export function PetWindow() {
       </section>
       <div className="pet-status">{moodConfig.label}</div>
       <section className="pet-debug-panel" aria-label="心情调试面板">
+        <div className="pet-mode-toggle" aria-label="心情控制模式">
+          <button
+            aria-pressed={debugMode === "auto"}
+            className="pet-mode-button"
+            onClick={() => setDebugMode("auto")}
+            type="button"
+          >
+            自动模式
+          </button>
+          <button
+            aria-pressed={debugMode === "manual"}
+            className="pet-mode-button"
+            onClick={() => setDebugMode("manual")}
+            type="button"
+          >
+            手动模式
+          </button>
+        </div>
+        <div className="pet-sensor-grid" aria-label="模拟传感器数据">
+          <div className="pet-sensor-item">
+            <span>CPU</span>
+            <strong>{sensorSnapshot.cpuPercent}%</strong>
+          </div>
+          <div className="pet-sensor-item">
+            <span>打字</span>
+            <strong>{sensorSnapshot.typingRate}/m</strong>
+          </div>
+          <div className="pet-sensor-item">
+            <span>空闲</span>
+            <strong>{formatIdleSeconds(sensorSnapshot.idleSeconds)}</strong>
+          </div>
+        </div>
         {petMoodOrder.map((item) => {
           const itemConfig = petMoodConfigs[item];
+          const isPressed = item === activeMood;
+          const isDisabled = debugMode === "auto";
 
           return (
             <button
-              aria-pressed={item === mood}
+              aria-pressed={isPressed}
               className="pet-debug-button"
+              disabled={isDisabled}
               key={item}
-              onClick={() => setMood(item)}
+              onClick={() => setManualMood(item)}
               type="button"
             >
               {itemConfig.label}

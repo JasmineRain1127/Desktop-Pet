@@ -212,13 +212,71 @@ body {
   flex-wrap: wrap;
   justify-content: center;
   gap: 5px;
-  width: min(100%, 232px);
+  width: min(100%, 258px);
   margin-top: 10px;
   padding: 7px;
   border: 2px solid rgba(24, 32, 36, 0.72);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(10px);
+}
+
+.pet-mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  width: 100%;
+}
+
+.pet-mode-button {
+  min-height: 26px;
+  border: 1px solid rgba(24, 32, 36, 0.36);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.62);
+  color: #182024;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pet-mode-button[aria-pressed="true"] {
+  border-color: #182024;
+  background: #182024;
+  color: #ffffff;
+}
+
+.pet-sensor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  width: 100%;
+}
+
+.pet-sensor-item {
+  display: grid;
+  min-height: 38px;
+  align-content: center;
+  justify-items: center;
+  border: 1px solid rgba(24, 32, 36, 0.26);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.pet-sensor-item span {
+  color: rgba(24, 32, 36, 0.72);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.pet-sensor-item strong {
+  margin-top: 3px;
+  color: #182024;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .pet-debug-button {
@@ -239,10 +297,16 @@ body {
   background: rgba(255, 255, 255, 0.88);
 }
 
+.pet-debug-button:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
 .pet-debug-button[aria-pressed="true"] {
   border-color: #182024;
   background: #182024;
   color: #ffffff;
+  opacity: 1;
 }
 
 @keyframes pet-breathe {
