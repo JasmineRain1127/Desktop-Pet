@@ -1,6 +1,7 @@
 use std::{thread, time::Duration};
 
 use serde::Serialize;
+use sysinfo::System;
 use tauri::{AppHandle, Emitter};
 
 #[derive(Clone, Copy, Serialize)]
@@ -58,13 +59,35 @@ const MOCK_FRAMES: [SensorSnapshot; 8] = [
 pub fn start_mock_sensor_events(app: AppHandle) {
     thread::spawn(move || {
         let mut frame_index = 0;
+        let mut system = System::new();
+
+        system.refresh_cpu_usage();
+        thread::sleep(Duration::from_secs(1));
 
         loop {
-            let snapshot = MOCK_FRAMES[frame_index % MOCK_FRAMES.len()];
+            let mock_snapshot = MOCK_FRAMES[frame_index % MOCK_FRAMES.len()];
+            let snapshot = SensorSnapshot {
+                cpu_percent: read_cpu_percent(&mut system, mock_snapshot.cpu_percent),
+                typing_rate: mock_snapshot.typing_rate,
+                idle_seconds: mock_snapshot.idle_seconds,
+            };
+
             let _ = app.emit(SENSOR_EVENT, snapshot);
 
             frame_index += 1;
             thread::sleep(Duration::from_secs(1));
         }
     });
+}
+
+fn read_cpu_percent(system: &mut System, fallback_cpu_percent: u8) -> u8 {
+    system.refresh_cpu_usage();
+
+    let usage = system.global_cpu_usage();
+
+    if !usage.is_finite() {
+        return fallback_cpu_percent;
+    }
+
+    usage.round().clamp(0.0, 100.0) as u8
 }
