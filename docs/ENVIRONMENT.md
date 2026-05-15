@@ -50,6 +50,20 @@ rustc --version
 cargo --version
 ```
 
+项目里的 `npm run tauri` 命令会自动把 `$HOME/.cargo/bin` 补进 PATH，所以启动桌面应用时通常不需要手动 `source "$HOME/.cargo/env"`。
+
+推荐启动方式：
+
+```bash
+/opt/homebrew/bin/fnm exec npm run tauri dev
+```
+
+如果你的终端已经启用了 `fnm`，也可以直接运行：
+
+```bash
+npm run tauri dev
+```
+
 期望看到：
 
 ```text
