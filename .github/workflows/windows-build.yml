@@ -48,6 +48,9 @@ jobs:
         working-directory: src-tauri
         run: cargo check
 
+      - name: Check Tauri CLI
+        run: npm run tauri -- --version
+
       - name: Build Tauri Windows package
         run: npm run tauri -- build
 
