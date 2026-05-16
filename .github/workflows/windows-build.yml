@@ -60,3 +60,4 @@ jobs:
           name: desktop-pet-windows-exe
           path: src-tauri/target/release/desktop-pet.exe
           if-no-files-found: error
+          retention-days: 14
