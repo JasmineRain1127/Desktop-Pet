@@ -369,7 +369,7 @@ body {
   width: 100vw;
   height: 100vh;
   align-content: center;
-  gap: 12px;
+  gap: 10px;
   padding: 18px;
   background:
     linear-gradient(180deg, rgba(250, 252, 251, 0.96), rgba(235, 245, 244, 0.98));
@@ -383,7 +383,7 @@ body {
 
 .feeding-dropzone {
   display: grid;
-  min-height: 150px;
+  min-height: 138px;
   place-items: center;
   gap: 10px;
   border: 2px dashed rgba(24, 32, 36, 0.48);
@@ -427,7 +427,7 @@ body {
 
 .feeding-result {
   display: grid;
-  min-height: 78px;
+  min-height: 72px;
   align-content: center;
   gap: 6px;
   padding: 12px;
@@ -457,6 +457,38 @@ body {
   font-size: 12px;
   font-weight: 800;
   line-height: 1.2;
+}
+
+.feeding-history {
+  display: grid;
+  gap: 5px;
+}
+
+.feeding-history-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 8px;
+  border: 1px solid rgba(24, 32, 36, 0.24);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.feeding-history-item span {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feeding-history-item strong {
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.1;
 }
 
 @keyframes pet-breathe {

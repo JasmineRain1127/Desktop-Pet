@@ -1,9 +1,11 @@
+mod feeding;
 mod sensors;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .invoke_handler(tauri::generate_handler![feeding::feed_file_path])
         .setup(|app| {
             #[cfg(desktop)]
             {
@@ -93,7 +95,7 @@ fn show_feeding_window(app: &tauri::AppHandle) -> tauri::Result<()> {
 
     let window = WebviewWindowBuilder::new(app, "feeding", WebviewUrl::App("index.html".into()))
         .title("投喂小怪兽")
-        .inner_size(360.0, 292.0)
+        .inner_size(360.0, 332.0)
         .resizable(false)
         .always_on_top(true)
         .center()

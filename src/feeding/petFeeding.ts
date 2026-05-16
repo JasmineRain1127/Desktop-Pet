@@ -40,26 +40,38 @@ const codeExtensions = new Set([
 const imageExtensions = new Set(["gif", "jpeg", "jpg", "png", "svg", "webp"]);
 const archiveExtensions = new Set(["7z", "dmg", "gz", "rar", "tar", "tgz", "zip"]);
 
-export function classifyFeedingFile(file: File): FeedingResult {
-  const extension = getFileExtension(file.name);
+export function classifyFallbackFile(file: File): FeedingResult {
+  return classifyFeedingMetadata({
+    fileName: file.name,
+    extension: getFileExtension(file.name),
+    sizeBytes: file.size,
+    modifiedAt: file.lastModified
+  });
+}
 
-  if (file.size >= largeFileThresholdBytes) {
-    return buildResult(file, extension, "large", "sad", "这口太大了");
+export function classifyFeedingMetadata(metadata: {
+  fileName: string;
+  extension: string;
+  sizeBytes: number;
+  modifiedAt: number;
+}): FeedingResult {
+  if (metadata.sizeBytes >= largeFileThresholdBytes) {
+    return buildResult(metadata, "large", "sad", "这口太大了");
   }
 
-  if (archiveExtensions.has(extension)) {
-    return buildResult(file, extension, "archive", "sad", "压缩包有点硌牙");
+  if (archiveExtensions.has(metadata.extension)) {
+    return buildResult(metadata, "archive", "sad", "压缩包有点硌牙");
   }
 
-  if (codeExtensions.has(extension)) {
-    return buildResult(file, extension, "code", "happy", "代码味道不错");
+  if (codeExtensions.has(metadata.extension)) {
+    return buildResult(metadata, "code", "happy", "代码味道不错");
   }
 
-  if (imageExtensions.has(extension)) {
-    return buildResult(file, extension, "image", "happy", "图像脆脆的");
+  if (imageExtensions.has(metadata.extension)) {
+    return buildResult(metadata, "image", "happy", "图像脆脆的");
   }
 
-  return buildResult(file, extension, "unknown", "sad", "还没学会吃这个");
+  return buildResult(metadata, "unknown", "sad", "还没学会吃这个");
 }
 
 export function formatFileSize(bytes: number) {
@@ -75,17 +87,21 @@ export function formatFileSize(bytes: number) {
 }
 
 function buildResult(
-  file: File,
-  extension: string,
+  metadata: {
+    fileName: string;
+    extension: string;
+    sizeBytes: number;
+    modifiedAt: number;
+  },
   flavor: FeedingFlavor,
   reactionMood: Extract<PetMood, "happy" | "sad">,
   message: string
 ): FeedingResult {
   return {
-    fileName: file.name,
-    extension,
-    sizeBytes: file.size,
-    modifiedAt: file.lastModified,
+    fileName: metadata.fileName,
+    extension: metadata.extension,
+    sizeBytes: metadata.sizeBytes,
+    modifiedAt: metadata.modifiedAt,
     flavor,
     reactionMood,
     message
