@@ -1,5 +1,6 @@
 mod feeding;
 mod sensors;
+mod window_position;
 
 use std::sync::Mutex;
 
@@ -30,7 +31,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             feeding::feed_file_path,
-            get_debug_panel_visible
+            get_debug_panel_visible,
+            window_position::save_main_window_position
         ])
         .setup(|app| {
             #[cfg(desktop)]
@@ -42,12 +44,21 @@ pub fn run() {
                 let show_item = MenuItem::with_id(app, "show", "显示小怪兽", true, None::<&str>)?;
                 let hide_item = MenuItem::with_id(app, "hide", "隐藏小怪兽", true, None::<&str>)?;
                 let feed_item = MenuItem::with_id(app, "feed", "投喂", true, None::<&str>)?;
+                let reset_position_item =
+                    MenuItem::with_id(app, "reset_position", "重置位置", true, None::<&str>)?;
                 let debug_item =
                     MenuItem::with_id(app, "debug", "显示调试面板", true, None::<&str>)?;
                 let quit_item = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
                 let menu = Menu::with_items(
                     app,
-                    &[&show_item, &hide_item, &feed_item, &debug_item, &quit_item],
+                    &[
+                        &show_item,
+                        &hide_item,
+                        &feed_item,
+                        &reset_position_item,
+                        &debug_item,
+                        &quit_item,
+                    ],
                 )?;
                 let debug_item_for_menu = debug_item.clone();
 
@@ -70,6 +81,11 @@ pub fn run() {
                         "feed" => {
                             if let Err(error) = show_feeding_window(app) {
                                 eprintln!("Unable to show feeding window: {error}");
+                            }
+                        }
+                        "reset_position" => {
+                            if let Err(error) = window_position::reset_main_window_position(app) {
+                                eprintln!("Unable to reset main window position: {error}");
                             }
                         }
                         "debug" => {
@@ -103,6 +119,8 @@ pub fn run() {
                     .build(app)?;
 
                 if let Some(window) = app.get_webview_window("main") {
+                    window_position::restore_main_window_position(app.handle(), &window);
+
                     window.on_window_event(|event| {
                         if let WindowEvent::CloseRequested { api, .. } = event {
                             api.prevent_close();

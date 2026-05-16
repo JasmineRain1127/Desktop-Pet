@@ -54,6 +54,14 @@ src-tauri/target/release/desktop-pet.exe
 
 当前 CI 先上传可运行的 `.exe`。MSI/NSIS 安装包会在后续阶段单独处理，避免 WiX 安装包链路阻塞 Windows 可执行文件交付。
 
+如果要把试用版发给别人，请先按照 [RELEASE.md](RELEASE.md) 做一次真实 Windows 冒烟测试。
+
+## 产物保留时间
+
+GitHub Actions artifact 不是永久网盘。当前 workflow 会保留 Windows `.exe` 产物一段时间，适合内部试用和临时下载。
+
+如果某个版本需要长期留存，建议在 GitHub Releases 中创建一个 Release，并上传对应的 `desktop-pet.exe` 或压缩包。
+
 ## 本地开发与 Windows 打包的区别
 
 macOS 本地仍然使用：

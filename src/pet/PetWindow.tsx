@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
-import { useEffect, useMemo, useState } from "react";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 import {
   FEEDING_RESULT_EVENT,
   type FeedingResult
@@ -16,6 +17,7 @@ import { listenToSensorSnapshots } from "./petSensorBridge";
 
 type DebugMode = "auto" | "manual";
 const DEBUG_PANEL_EVENT = "debug_panel_visibility_changed";
+const POSITION_SAVE_DELAY_MS = 350;
 
 export function PetWindow() {
   const [isDebugPanelVisible, setIsDebugPanelVisible] = useState(false);
@@ -29,6 +31,7 @@ export function PetWindow() {
   const activeMood =
     feedingMood ?? (debugMode === "auto" ? automaticMood : manualMood);
   const moodConfig = petMoodConfigs[activeMood];
+  const appWindow = useMemo(() => getCurrentWindow(), []);
   const shellClassName = useMemo(
     () =>
       `pet-shell ${isDebugPanelVisible ? "has-debug-panel" : "is-compact"} ${moodConfig.className}`,
@@ -91,6 +94,44 @@ export function PetWindow() {
   useEffect(() => {
     let disposed = false;
     let unlisten: UnlistenFn | undefined;
+    let saveTimer: number | undefined;
+
+    appWindow
+      .onMoved((event) => {
+        window.clearTimeout(saveTimer);
+
+        saveTimer = window.setTimeout(() => {
+          const { x, y } = event.payload;
+
+          invoke("save_main_window_position", { x, y }).catch(
+            (error: unknown) => {
+              console.warn("Unable to save main window position.", error);
+            }
+          );
+        }, POSITION_SAVE_DELAY_MS);
+      })
+      .then((nextUnlisten) => {
+        if (disposed) {
+          nextUnlisten();
+          return;
+        }
+
+        unlisten = nextUnlisten;
+      })
+      .catch((error: unknown) => {
+        console.warn("Unable to listen for window movement.", error);
+      });
+
+    return () => {
+      disposed = true;
+      window.clearTimeout(saveTimer);
+      unlisten?.();
+    };
+  }, [appWindow]);
+
+  useEffect(() => {
+    let disposed = false;
+    let unlisten: UnlistenFn | undefined;
     let eatingTimer: number | undefined;
     let resetTimer: number | undefined;
 
@@ -127,17 +168,41 @@ export function PetWindow() {
     };
   }, []);
 
+  const startWindowDrag = useCallback(
+    (event: MouseEvent<HTMLElement>) => {
+      if (event.button !== 0) {
+        return;
+      }
+
+      event.preventDefault();
+
+      appWindow.startDragging().catch((error: unknown) => {
+        console.warn("Unable to start window drag.", error);
+      });
+    },
+    [appWindow]
+  );
+
   return (
     <main className={shellClassName} aria-label="桌面小怪兽">
-      <section className="pet-stage">
-        <div className="pet-shadow" />
-        <div className="pet-body">
-          <div className="pet-ear pet-ear-left" />
-          <div className="pet-ear pet-ear-right" />
-          <div className="pet-sweat pet-sweat-left" />
-          <div className="pet-sweat pet-sweat-right" />
-          <div className="pet-sleep-bubble">Z</div>
-          <div className="pet-face">{moodConfig.face}</div>
+      <section
+        className="pet-stage"
+        data-tauri-drag-region
+        onMouseDown={startWindowDrag}
+        aria-label="拖动小怪兽"
+      >
+        <div className="pet-shadow" data-tauri-drag-region />
+        <div className="pet-body" data-tauri-drag-region>
+          <div className="pet-ear pet-ear-left" data-tauri-drag-region />
+          <div className="pet-ear pet-ear-right" data-tauri-drag-region />
+          <div className="pet-sweat pet-sweat-left" data-tauri-drag-region />
+          <div className="pet-sweat pet-sweat-right" data-tauri-drag-region />
+          <div className="pet-sleep-bubble" data-tauri-drag-region>
+            Z
+          </div>
+          <div className="pet-face" data-tauri-drag-region>
+            {moodConfig.face}
+          </div>
         </div>
       </section>
       <div className="pet-status">{moodConfig.label}</div>

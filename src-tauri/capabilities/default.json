@@ -3,5 +3,9 @@
   "identifier": "default",
   "description": "默认桌面窗口权限",
   "windows": ["main", "feeding"],
-  "permissions": ["core:default", "opener:default"]
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "opener:default"
+  ]
 }
