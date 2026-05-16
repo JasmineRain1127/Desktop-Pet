@@ -11,20 +11,37 @@ if (!command) {
 }
 
 const env = { ...process.env };
-const pathParts = [];
+const pathKey = findPathKey(env);
+const projectBin = join(process.cwd(), "node_modules", ".bin");
+const localBinCommand = join(
+  projectBin,
+  process.platform === "win32" ? `${command}.cmd` : command
+);
+const resolvedCommand = existsSync(localBinCommand) ? localBinCommand : command;
+const pathParts = [projectBin];
+const homeDir = env.HOME ?? env.USERPROFILE;
+const cargoHome = env.CARGO_HOME ?? (homeDir ? join(homeDir, ".cargo") : undefined);
 
-if (env.HOME) {
-  const cargoBin = join(env.HOME, ".cargo", "bin");
+if (cargoHome) {
+  const cargoBin = join(cargoHome, "bin");
 
   if (existsSync(cargoBin)) {
     pathParts.push(cargoBin);
   }
 }
 
-pathParts.push(env.PATH ?? "");
-env.PATH = pathParts.join(delimiter);
+pathParts.push(env[pathKey] ?? "");
+env[pathKey] = pathParts.join(delimiter);
 
-const result = spawnSync(command, args, {
+if (process.platform === "win32") {
+  for (const key of Object.keys(env)) {
+    if (key !== pathKey && key.toLowerCase() === "path") {
+      delete env[key];
+    }
+  }
+}
+
+const result = spawnSync(resolvedCommand, args, {
   env,
   shell: process.platform === "win32",
   stdio: "inherit"
@@ -36,3 +53,11 @@ if (result.error) {
 }
 
 process.exit(result.status ?? 1);
+
+function findPathKey(environment) {
+  if (process.platform !== "win32") {
+    return "PATH";
+  }
+
+  return Object.keys(environment).find((key) => key.toLowerCase() === "path") ?? "PATH";
+}

@@ -32,6 +32,13 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
     "category": "Utility",
     "shortDescription": "一个低存在感但有灵性的桌面小怪兽",
     "longDescription": "一个会根据工作状态改变心情的 Windows 桌面小怪兽。"
