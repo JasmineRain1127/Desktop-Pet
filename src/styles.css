@@ -95,6 +95,27 @@ body {
   animation: pet-sleeping 4s ease-in-out infinite;
 }
 
+.is-eating .pet-body {
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.74), transparent 20%),
+    linear-gradient(145deg, #a7f26d 0%, #50c878 55%, #288a67 100%);
+  animation: pet-eating 0.42s ease-in-out infinite;
+}
+
+.is-happy .pet-body {
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.76), transparent 20%),
+    linear-gradient(145deg, #ffe978 0%, #ffc857 54%, #df8b35 100%);
+  animation: pet-happy 1.05s ease-in-out infinite;
+}
+
+.is-sad .pet-body {
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.7), transparent 20%),
+    linear-gradient(145deg, #c7d3de 0%, #8fa5b5 56%, #607987 100%);
+  animation: pet-sad 1.8s ease-in-out infinite;
+}
+
 .pet-ear {
   position: absolute;
   top: -12%;
@@ -103,6 +124,24 @@ body {
   border: 3px solid #182024;
   border-radius: 45% 45% 16% 45%;
   background: #65d9bd;
+}
+
+.is-stressed .pet-ear,
+.is-overheated .pet-ear,
+.is-happy .pet-ear {
+  background: currentColor;
+}
+
+.is-stressed {
+  color: #f0a84d;
+}
+
+.is-overheated {
+  color: #ec615e;
+}
+
+.is-happy {
+  color: #ffc857;
 }
 
 .pet-ear-left {
@@ -180,6 +219,22 @@ body {
 .is-sleeping .pet-sleep-bubble {
   display: flex;
   animation: pet-sleep-bubble 2.6s ease-in-out infinite;
+}
+
+.is-eating .pet-sleep-bubble {
+  display: flex;
+  font-size: 0;
+  animation: pet-food-pop 0.8s ease-in-out infinite;
+}
+
+.is-eating .pet-sleep-bubble::before {
+  width: 9px;
+  height: 9px;
+  border: 2px solid #182024;
+  border-radius: 3px;
+  background: #ffd166;
+  content: "";
+  rotate: 18deg;
 }
 
 .pet-shadow {
@@ -309,6 +364,101 @@ body {
   opacity: 1;
 }
 
+.feeding-shell {
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  align-content: center;
+  gap: 12px;
+  padding: 18px;
+  background:
+    linear-gradient(180deg, rgba(250, 252, 251, 0.96), rgba(235, 245, 244, 0.98));
+  color: #182024;
+  user-select: none;
+}
+
+.feeding-bowl {
+  display: grid;
+}
+
+.feeding-dropzone {
+  display: grid;
+  min-height: 150px;
+  place-items: center;
+  gap: 10px;
+  border: 2px dashed rgba(24, 32, 36, 0.48);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 80%, rgba(55, 184, 162, 0.22), transparent 42%),
+    rgba(255, 255, 255, 0.68);
+  color: #182024;
+  cursor: pointer;
+  font: inherit;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.feeding-dropzone[data-dragging="true"],
+.feeding-dropzone:hover {
+  border-color: #182024;
+  background:
+    radial-gradient(circle at 50% 78%, rgba(255, 200, 87, 0.36), transparent 44%),
+    rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+}
+
+.feeding-mouth {
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.feeding-prompt {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.feeding-file-input {
+  display: none;
+}
+
+.feeding-result {
+  display: grid;
+  min-height: 78px;
+  align-content: center;
+  gap: 6px;
+  padding: 12px;
+  border: 2px solid rgba(24, 32, 36, 0.72);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+
+.feeding-result-message {
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.feeding-file-name {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feeding-file-meta {
+  color: rgba(24, 32, 36, 0.7);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
 @keyframes pet-breathe {
   0%,
   100% {
@@ -412,5 +562,59 @@ body {
     opacity: 1;
     scale: 1;
     translate: 5px -5px;
+  }
+}
+
+@keyframes pet-eating {
+  0%,
+  100% {
+    translate: 0 0;
+    scale: 1.04 0.96;
+  }
+
+  50% {
+    translate: 0 -3px;
+    scale: 0.98 1.04;
+  }
+}
+
+@keyframes pet-happy {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: -2deg;
+  }
+
+  50% {
+    translate: 0 -12px;
+    rotate: 2deg;
+  }
+}
+
+@keyframes pet-sad {
+  0%,
+  100% {
+    translate: 0 8px;
+    scale: 1 0.97;
+  }
+
+  50% {
+    translate: 0 12px;
+    scale: 0.98 1;
+  }
+}
+
+@keyframes pet-food-pop {
+  0%,
+  100% {
+    opacity: 0.2;
+    scale: 0.76;
+    translate: 0 8px;
+  }
+
+  50% {
+    opacity: 1;
+    scale: 1;
+    translate: -6px -7px;
   }
 }

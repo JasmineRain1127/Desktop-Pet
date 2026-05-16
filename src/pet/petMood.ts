@@ -4,14 +4,17 @@ export type PetMood =
   | "stressed"
   | "overheated"
   | "sleepy"
-  | "sleeping";
+  | "sleeping"
+  | "eating"
+  | "happy"
+  | "sad";
 
 export type PetMoodConfig = {
   mood: PetMood;
   label: string;
   face: string;
   className: string;
-  tone: "calm" | "work" | "pressure" | "rest";
+  tone: "calm" | "work" | "pressure" | "rest" | "feeding";
   priority: number;
 };
 
@@ -63,6 +66,30 @@ export const petMoodConfigs: Record<PetMood, PetMoodConfig> = {
     className: "is-sleeping",
     tone: "rest",
     priority: 25
+  },
+  eating: {
+    mood: "eating",
+    label: "吞吞吞",
+    face: "•༥•",
+    className: "is-eating",
+    tone: "feeding",
+    priority: 50
+  },
+  happy: {
+    mood: "happy",
+    label: "好吃！",
+    face: "ᵔᴗᵔ",
+    className: "is-happy",
+    tone: "feeding",
+    priority: 45
+  },
+  sad: {
+    mood: "sad",
+    label: "噎住了",
+    face: "ಥ_ಥ",
+    className: "is-sad",
+    tone: "feeding",
+    priority: 45
   }
 };
 
@@ -72,5 +99,8 @@ export const petMoodOrder: PetMood[] = [
   "stressed",
   "overheated",
   "sleepy",
-  "sleeping"
+  "sleeping",
+  "eating",
+  "happy",
+  "sad"
 ];

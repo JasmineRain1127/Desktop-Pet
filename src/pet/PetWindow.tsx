@@ -1,4 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import {
+  FEEDING_RESULT_EVENT,
+  type FeedingResult
+} from "../feeding/petFeeding";
 import { petMoodConfigs, petMoodOrder, type PetMood } from "./petMood";
 import {
   deriveMoodFromSensors,
@@ -13,11 +18,13 @@ type DebugMode = "auto" | "manual";
 export function PetWindow() {
   const [debugMode, setDebugMode] = useState<DebugMode>("auto");
   const [manualMood, setManualMood] = useState<PetMood>("idle");
+  const [feedingMood, setFeedingMood] = useState<PetMood | null>(null);
   const [sensorSnapshot, setSensorSnapshot] = useState<PetSensorSnapshot>(
     initialSensorSnapshot
   );
   const automaticMood = deriveMoodFromSensors(sensorSnapshot);
-  const activeMood = debugMode === "auto" ? automaticMood : manualMood;
+  const activeMood =
+    feedingMood ?? (debugMode === "auto" ? automaticMood : manualMood);
   const moodConfig = petMoodConfigs[activeMood];
   const shellClassName = useMemo(
     () => `pet-shell ${moodConfig.className}`,
@@ -26,6 +33,45 @@ export function PetWindow() {
 
   useEffect(() => {
     return listenToSensorSnapshots(setSensorSnapshot);
+  }, []);
+
+  useEffect(() => {
+    let disposed = false;
+    let unlisten: UnlistenFn | undefined;
+    let eatingTimer: number | undefined;
+    let resetTimer: number | undefined;
+
+    listen<FeedingResult>(FEEDING_RESULT_EVENT, (event) => {
+      window.clearTimeout(eatingTimer);
+      window.clearTimeout(resetTimer);
+      setFeedingMood("eating");
+
+      eatingTimer = window.setTimeout(() => {
+        setFeedingMood(event.payload.reactionMood);
+      }, 850);
+
+      resetTimer = window.setTimeout(() => {
+        setFeedingMood(null);
+      }, 2600);
+    })
+      .then((nextUnlisten) => {
+        if (disposed) {
+          nextUnlisten();
+          return;
+        }
+
+        unlisten = nextUnlisten;
+      })
+      .catch((error: unknown) => {
+        console.warn("Unable to listen for feeding results.", error);
+      });
+
+    return () => {
+      disposed = true;
+      window.clearTimeout(eatingTimer);
+      window.clearTimeout(resetTimer);
+      unlisten?.();
+    };
   }, []);
 
   return (

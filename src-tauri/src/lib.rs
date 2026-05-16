@@ -13,8 +13,10 @@ pub fn run() {
 
                 let show_item = MenuItem::with_id(app, "show", "显示小怪兽", true, None::<&str>)?;
                 let hide_item = MenuItem::with_id(app, "hide", "隐藏小怪兽", true, None::<&str>)?;
+                let feed_item = MenuItem::with_id(app, "feed", "投喂", true, None::<&str>)?;
                 let quit_item = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
-                let menu = Menu::with_items(app, &[&show_item, &hide_item, &quit_item])?;
+                let menu =
+                    Menu::with_items(app, &[&show_item, &hide_item, &feed_item, &quit_item])?;
 
                 let _tray = TrayIconBuilder::with_id("main-tray")
                     .tooltip("桌面小怪兽")
@@ -30,6 +32,11 @@ pub fn run() {
                         "hide" => {
                             if let Some(window) = app.get_webview_window("main") {
                                 let _ = window.hide();
+                            }
+                        }
+                        "feed" => {
+                            if let Err(error) = show_feeding_window(app) {
+                                eprintln!("Unable to show feeding window: {error}");
                             }
                         }
                         "quit" => app.exit(0),
@@ -72,4 +79,26 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running desktop pet application");
+}
+
+#[cfg(desktop)]
+fn show_feeding_window(app: &tauri::AppHandle) -> tauri::Result<()> {
+    use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
+
+    if let Some(window) = app.get_webview_window("feeding") {
+        window.show()?;
+        window.set_focus()?;
+        return Ok(());
+    }
+
+    let window = WebviewWindowBuilder::new(app, "feeding", WebviewUrl::App("index.html".into()))
+        .title("投喂小怪兽")
+        .inner_size(360.0, 292.0)
+        .resizable(false)
+        .always_on_top(true)
+        .center()
+        .build()?;
+
+    window.set_focus()?;
+    Ok(())
 }
