@@ -130,7 +130,7 @@ fn platform_idle_seconds() -> Option<u16> {
         dwTime: 0,
     };
 
-    if unsafe { GetLastInputInfo(&mut input_info) }.is_err() {
+    if !unsafe { GetLastInputInfo(&mut input_info) }.as_bool() {
         return None;
     }
 
