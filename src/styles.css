@@ -37,6 +37,11 @@ body {
   user-select: none;
 }
 
+.pet-shell.is-compact {
+  grid-template-rows: 1fr auto;
+  padding: 14px 14px 12px;
+}
+
 .pet-stage {
   position: relative;
   display: grid;

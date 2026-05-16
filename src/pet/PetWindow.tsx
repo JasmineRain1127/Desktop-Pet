@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useMemo, useState } from "react";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import {
@@ -14,8 +15,10 @@ import {
 import { listenToSensorSnapshots } from "./petSensorBridge";
 
 type DebugMode = "auto" | "manual";
+const DEBUG_PANEL_EVENT = "debug_panel_visibility_changed";
 
 export function PetWindow() {
+  const [isDebugPanelVisible, setIsDebugPanelVisible] = useState(false);
   const [debugMode, setDebugMode] = useState<DebugMode>("auto");
   const [manualMood, setManualMood] = useState<PetMood>("idle");
   const [feedingMood, setFeedingMood] = useState<PetMood | null>(null);
@@ -27,13 +30,63 @@ export function PetWindow() {
     feedingMood ?? (debugMode === "auto" ? automaticMood : manualMood);
   const moodConfig = petMoodConfigs[activeMood];
   const shellClassName = useMemo(
-    () => `pet-shell ${moodConfig.className}`,
-    [moodConfig.className]
+    () =>
+      `pet-shell ${isDebugPanelVisible ? "has-debug-panel" : "is-compact"} ${moodConfig.className}`,
+    [isDebugPanelVisible, moodConfig.className]
   );
+
+  useEffect(() => {
+    let disposed = false;
+
+    invoke<boolean>("get_debug_panel_visible")
+      .then((visible) => {
+        if (!disposed) {
+          setIsDebugPanelVisible(visible);
+        }
+      })
+      .catch((error: unknown) => {
+        console.warn("Unable to read debug panel visibility.", error);
+      });
+
+    return () => {
+      disposed = true;
+    };
+  }, []);
 
   useEffect(() => {
     return listenToSensorSnapshots(setSensorSnapshot);
   }, []);
+
+  useEffect(() => {
+    let disposed = false;
+    let unlisten: UnlistenFn | undefined;
+
+    listen<boolean>(DEBUG_PANEL_EVENT, (event) => {
+      setIsDebugPanelVisible(event.payload);
+    })
+      .then((nextUnlisten) => {
+        if (disposed) {
+          nextUnlisten();
+          return;
+        }
+
+        unlisten = nextUnlisten;
+      })
+      .catch((error: unknown) => {
+        console.warn("Unable to listen for debug panel visibility.", error);
+      });
+
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isDebugPanelVisible) {
+      setDebugMode("auto");
+    }
+  }, [isDebugPanelVisible]);
 
   useEffect(() => {
     let disposed = false;
@@ -88,58 +141,60 @@ export function PetWindow() {
         </div>
       </section>
       <div className="pet-status">{moodConfig.label}</div>
-      <section className="pet-debug-panel" aria-label="心情调试面板">
-        <div className="pet-mode-toggle" aria-label="心情控制模式">
-          <button
-            aria-pressed={debugMode === "auto"}
-            className="pet-mode-button"
-            onClick={() => setDebugMode("auto")}
-            type="button"
-          >
-            自动模式
-          </button>
-          <button
-            aria-pressed={debugMode === "manual"}
-            className="pet-mode-button"
-            onClick={() => setDebugMode("manual")}
-            type="button"
-          >
-            手动模式
-          </button>
-        </div>
-        <div className="pet-sensor-grid" aria-label="模拟传感器数据">
-          <div className="pet-sensor-item">
-            <span>CPU</span>
-            <strong>{sensorSnapshot.cpuPercent}%</strong>
-          </div>
-          <div className="pet-sensor-item">
-            <span>打字</span>
-            <strong>{sensorSnapshot.typingRate}/m</strong>
-          </div>
-          <div className="pet-sensor-item">
-            <span>空闲</span>
-            <strong>{formatIdleSeconds(sensorSnapshot.idleSeconds)}</strong>
-          </div>
-        </div>
-        {petMoodOrder.map((item) => {
-          const itemConfig = petMoodConfigs[item];
-          const isPressed = item === activeMood;
-          const isDisabled = debugMode === "auto";
-
-          return (
+      {isDebugPanelVisible ? (
+        <section className="pet-debug-panel" aria-label="心情调试面板">
+          <div className="pet-mode-toggle" aria-label="心情控制模式">
             <button
-              aria-pressed={isPressed}
-              className="pet-debug-button"
-              disabled={isDisabled}
-              key={item}
-              onClick={() => setManualMood(item)}
+              aria-pressed={debugMode === "auto"}
+              className="pet-mode-button"
+              onClick={() => setDebugMode("auto")}
               type="button"
             >
-              {itemConfig.label}
+              自动模式
             </button>
-          );
-        })}
-      </section>
+            <button
+              aria-pressed={debugMode === "manual"}
+              className="pet-mode-button"
+              onClick={() => setDebugMode("manual")}
+              type="button"
+            >
+              手动模式
+            </button>
+          </div>
+          <div className="pet-sensor-grid" aria-label="传感器数据">
+            <div className="pet-sensor-item">
+              <span>CPU</span>
+              <strong>{sensorSnapshot.cpuPercent}%</strong>
+            </div>
+            <div className="pet-sensor-item">
+              <span>打字</span>
+              <strong>{sensorSnapshot.typingRate}/m</strong>
+            </div>
+            <div className="pet-sensor-item">
+              <span>空闲</span>
+              <strong>{formatIdleSeconds(sensorSnapshot.idleSeconds)}</strong>
+            </div>
+          </div>
+          {petMoodOrder.map((item) => {
+            const itemConfig = petMoodConfigs[item];
+            const isPressed = item === activeMood;
+            const isDisabled = debugMode === "auto";
+
+            return (
+              <button
+                aria-pressed={isPressed}
+                className="pet-debug-button"
+                disabled={isDisabled}
+                key={item}
+                onClick={() => setManualMood(item)}
+                type="button"
+              >
+                {itemConfig.label}
+              </button>
+            );
+          })}
+        </section>
+      ) : null}
     </main>
   );
 }
