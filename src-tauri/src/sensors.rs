@@ -145,6 +145,7 @@ fn platform_idle_seconds() -> Option<u16> {
     None
 }
 
+#[cfg(target_os = "macos")]
 fn finite_seconds_to_u16(seconds: f64) -> Option<u16> {
     if !seconds.is_finite() || seconds.is_sign_negative() {
         return None;
