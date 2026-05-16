@@ -11,6 +11,13 @@ if (!command) {
 }
 
 const env = { ...process.env };
+const localBinCommand = join(
+  process.cwd(),
+  "node_modules",
+  ".bin",
+  process.platform === "win32" ? `${command}.cmd` : command
+);
+const resolvedCommand = existsSync(localBinCommand) ? localBinCommand : command;
 const pathParts = [];
 
 if (env.HOME) {
@@ -24,7 +31,7 @@ if (env.HOME) {
 pathParts.push(env.PATH ?? "");
 env.PATH = pathParts.join(delimiter);
 
-const result = spawnSync(command, args, {
+const result = spawnSync(resolvedCommand, args, {
   env,
   shell: process.platform === "win32",
   stdio: "inherit"
