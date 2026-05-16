@@ -1,5 +1,12 @@
 import type { PetMood } from "./petMood";
 
+const CPU_FOCUSED_THRESHOLD = 35;
+const CPU_STRESSED_THRESHOLD = 70;
+const CPU_OVERHEATED_THRESHOLD = 90;
+const TYPING_FOCUSED_THRESHOLD = 120;
+const TYPING_STRESSED_THRESHOLD = 480;
+const TYPING_OVERHEATED_THRESHOLD = 900;
+
 export type PetSensorSnapshot = {
   cpuPercent: number;
   typingRate: number;
@@ -21,15 +28,24 @@ export function deriveMoodFromSensors(snapshot: PetSensorSnapshot): PetMood {
     return "sleepy";
   }
 
-  if (snapshot.cpuPercent >= 90 || snapshot.typingRate >= 140) {
+  if (
+    snapshot.cpuPercent >= CPU_OVERHEATED_THRESHOLD ||
+    snapshot.typingRate >= TYPING_OVERHEATED_THRESHOLD
+  ) {
     return "overheated";
   }
 
-  if (snapshot.cpuPercent >= 70 || snapshot.typingRate >= 90) {
+  if (
+    snapshot.cpuPercent >= CPU_STRESSED_THRESHOLD ||
+    snapshot.typingRate >= TYPING_STRESSED_THRESHOLD
+  ) {
     return "stressed";
   }
 
-  if (snapshot.cpuPercent >= 35 || snapshot.typingRate >= 25) {
+  if (
+    snapshot.cpuPercent >= CPU_FOCUSED_THRESHOLD ||
+    snapshot.typingRate >= TYPING_FOCUSED_THRESHOLD
+  ) {
     return "focused";
   }
 
