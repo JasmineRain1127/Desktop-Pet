@@ -65,7 +65,7 @@ pub fn run() {
                     });
                 }
 
-                sensors::start_mock_sensor_events(app.handle().clone());
+                sensors::start_sensor_events(app.handle().clone());
             }
 
             Ok(())
