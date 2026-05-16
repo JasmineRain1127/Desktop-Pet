@@ -7,7 +7,7 @@ dist-ssr/
 npm-debug.log*
 
 # Tauri / Rust
-src-tauri/gen/schemas/
+src-tauri/gen/
 src-tauri/target/
 target/
 
