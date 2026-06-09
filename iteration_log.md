@@ -64,3 +64,39 @@
 - 结束：2026-06-09 21:27:05 CST。
 - 实际耗时约 30 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔目前可继续观察；如果后续开始涉及 UI/样式和持久化，应考虑调回 15 到 30 分钟。
+
+## 2026-06-09 21:31 CST - Cat and dog appearance candidates
+
+### 本轮观察
+
+- 当前工作区开始时干净，但分支已有 2 个本地 commit 尚未推送，符合“默认不自动推送”的约束。
+- 上一轮已经建立 `petAppearance.ts`，并且默认仍只使用 `monster`，适合继续推进配置层而不触碰 UI 行为。
+- 多形象主线下一步需要先有候选形象 ID 和展示文案，后续调试面板或设置入口才能安全读取。
+
+### 本轮选择
+
+补充小猫和小狗两个候选形象配置。只扩大数据模型，不接入选择 UI，不改变默认形象，确保本轮是可验证的小改动。
+
+### 修改内容
+
+- 将 `PetAppearanceId` 扩展为 `monster | cat | dog`。
+- 在 `petAppearanceConfigs` 中新增 `cat` 和 `dog` 的 label、窗口 aria 文案、拖动 aria 文案和预留 CSS class。
+- 更新 `petAppearanceOrder`，为后续选择器提供稳定排序。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 在调试面板里增加一个最小形象选择器，仅在运行时切换，不做持久化；这样可以预览 `monster`、`cat`、`dog` 的 class 接线是否自然。
+
+### 耗时判断
+
+- 开始：2026-06-09 21:31:46 CST。
+- 结束：2026-06-09 21:32:06 CST。
+- 实际耗时约 20 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔目前仍可继续观察；下一轮如果进入 UI 和样式，可能需要更长间隔。
