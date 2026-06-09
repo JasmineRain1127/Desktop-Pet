@@ -776,3 +776,20 @@ body {
     translate: -6px -7px;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-body,
+  .pet-sweat,
+  .pet-sleep-bubble {
+    animation: none;
+  }
+
+  .pet-status {
+    transition: none;
+  }
+
+  .pet-appearance-cycle:hover,
+  .pet-appearance-cycle:focus-visible {
+    transform: none;
+  }
+}

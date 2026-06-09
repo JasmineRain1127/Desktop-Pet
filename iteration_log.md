@@ -612,3 +612,39 @@
 - 结束：2026-06-09 22:48:44 CST。
 - 实际耗时约 29 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔足够，本轮不需要调整自动任务节奏。
+
+## 2026-06-09 22:53 CST - Reduced motion support
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 17 个本地 commit 尚未推送。
+- 桌宠有多组循环动画，状态胶囊也有 hover/focus 过渡。
+- 默认动态是桌宠灵性的核心，但系统偏好减少动态的用户应该能得到更安静的体验。
+
+### 本轮选择
+
+增加 `prefers-reduced-motion: reduce` 支持。只在用户系统偏好减少动态时停用循环动画和状态胶囊过渡，默认体验保持不变。
+
+### 修改内容
+
+- 为 `.pet-body`、`.pet-sweat`、`.pet-sleep-bubble` 在 reduced motion 下关闭 animation。
+- 为 `.pet-status` 在 reduced motion 下关闭 transition。
+- 为状态胶囊 hover/focus 在 reduced motion 下取消上浮位移。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 可以继续做状态切换平滑/防抖的小设计，或者等待用户确认是否推送当前多形象分支。
+
+### 耗时判断
+
+- 开始：2026-06-09 22:53:19 CST。
+- 结束：2026-06-09 22:53:44 CST。
+- 实际耗时约 25 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔足够，本轮不需要调整自动任务节奏。
