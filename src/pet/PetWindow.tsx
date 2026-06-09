@@ -268,6 +268,7 @@ export function PetWindow() {
         aria-label={`切换桌宠形象，当前是${appearanceConfig.label}`}
         className="pet-status pet-appearance-cycle"
         onClick={cycleAppearance}
+        title="点击切换桌宠形象"
         type="button"
       >
         {moodConfig.label} · {appearanceConfig.label}
