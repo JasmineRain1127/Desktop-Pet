@@ -8,6 +8,7 @@ import {
 } from "../feeding/petFeeding";
 import {
   DEFAULT_PET_APPEARANCE_ID,
+  isPetAppearanceId,
   petAppearanceConfigs,
   petAppearanceOrder,
   type PetAppearanceId
@@ -24,12 +25,27 @@ import { listenToSensorSnapshots } from "./petSensorBridge";
 type DebugMode = "auto" | "manual";
 const DEBUG_PANEL_EVENT = "debug_panel_visibility_changed";
 const POSITION_SAVE_DELAY_MS = 350;
+const APPEARANCE_STORAGE_KEY = "desktop-pet-appearance";
+
+function readStoredAppearanceId(): PetAppearanceId {
+  try {
+    const storedValue = window.localStorage.getItem(APPEARANCE_STORAGE_KEY);
+
+    if (storedValue && isPetAppearanceId(storedValue)) {
+      return storedValue;
+    }
+  } catch (error: unknown) {
+    console.warn("Unable to read pet appearance.", error);
+  }
+
+  return DEFAULT_PET_APPEARANCE_ID;
+}
 
 export function PetWindow() {
   const [isDebugPanelVisible, setIsDebugPanelVisible] = useState(false);
   const [debugMode, setDebugMode] = useState<DebugMode>("auto");
   const [selectedAppearanceId, setSelectedAppearanceId] =
-    useState<PetAppearanceId>(DEFAULT_PET_APPEARANCE_ID);
+    useState<PetAppearanceId>(readStoredAppearanceId);
   const [manualMood, setManualMood] = useState<PetMood>("idle");
   const [feedingMood, setFeedingMood] = useState<PetMood | null>(null);
   const [sensorSnapshot, setSensorSnapshot] = useState<PetSensorSnapshot>(
@@ -102,6 +118,17 @@ export function PetWindow() {
       setDebugMode("auto");
     }
   }, [isDebugPanelVisible]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        APPEARANCE_STORAGE_KEY,
+        selectedAppearanceId
+      );
+    } catch (error: unknown) {
+      console.warn("Unable to save pet appearance.", error);
+    }
+  }, [selectedAppearanceId]);
 
   useEffect(() => {
     let disposed = false;

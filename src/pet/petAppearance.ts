@@ -60,3 +60,7 @@ export const petAppearanceConfigs: Record<PetAppearanceId, PetAppearanceConfig> 
 };
 
 export const petAppearanceOrder: PetAppearanceId[] = ["monster", "cat", "dog"];
+
+export function isPetAppearanceId(value: string): value is PetAppearanceId {
+  return value in petAppearanceConfigs;
+}

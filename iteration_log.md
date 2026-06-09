@@ -209,3 +209,40 @@
 - 结束：2026-06-09 21:47:39 CST。
 - 实际耗时约 26 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔仍可继续观察；下一轮如果进入持久化或设置入口，建议考虑调回 15 分钟以上。
+
+## 2026-06-09 21:52 CST - Persist selected appearance
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 6 个本地 commit 尚未推送。
+- 调试面板已经可以选择小怪兽、小猫、小狗，并且形象与脸部字符都有实际差异。
+- 形象选择仍是纯运行时状态，应用重启后会回到默认小怪兽；这是用户可选形象主线的下一块小地基。
+
+### 本轮选择
+
+增加前端本地持久化，让形象选择在重启后保留。只使用浏览器 `localStorage` 保存形象 ID，不写后端、不读取键盘内容、不读取文件内容、不上传数据。
+
+### 修改内容
+
+- 在 `petAppearance.ts` 中新增 `isPetAppearanceId` 类型守卫，防止无效存储值破坏默认行为。
+- 在 `PetWindow` 中增加 `readStoredAppearanceId`，初始化时读取本地保存的形象 ID。
+- 当 `selectedAppearanceId` 改变时写入 `localStorage`。
+- 无效或读取失败时回退到默认 `monster`。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 考虑把形象选择从调试面板迁移到正式入口，例如在调试面板之外提供一个轻量设置区；或者先整理文档，说明当前多形象功能仍是预览入口。
+
+### 耗时判断
+
+- 开始：2026-06-09 21:52:20 CST。
+- 结束：2026-06-09 21:52:45 CST。
+- 实际耗时约 25 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔对本轮仍可承受；如果下一轮设计正式设置入口，应调回 15 分钟以上以便做 UI 验证。
