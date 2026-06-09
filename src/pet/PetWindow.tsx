@@ -6,6 +6,10 @@ import {
   FEEDING_RESULT_EVENT,
   type FeedingResult
 } from "../feeding/petFeeding";
+import {
+  DEFAULT_PET_APPEARANCE_ID,
+  petAppearanceConfigs
+} from "./petAppearance";
 import { petMoodConfigs, petMoodOrder, type PetMood } from "./petMood";
 import {
   deriveMoodFromSensors,
@@ -31,11 +35,14 @@ export function PetWindow() {
   const activeMood =
     feedingMood ?? (debugMode === "auto" ? automaticMood : manualMood);
   const moodConfig = petMoodConfigs[activeMood];
+  const appearanceConfig = petAppearanceConfigs[DEFAULT_PET_APPEARANCE_ID];
   const appWindow = useMemo(() => getCurrentWindow(), []);
   const shellClassName = useMemo(
     () =>
-      `pet-shell ${isDebugPanelVisible ? "has-debug-panel" : "is-compact"} ${moodConfig.className}`,
-    [isDebugPanelVisible, moodConfig.className]
+      `pet-shell ${appearanceConfig.shellClassName} ${
+        isDebugPanelVisible ? "has-debug-panel" : "is-compact"
+      } ${moodConfig.className}`,
+    [appearanceConfig.shellClassName, isDebugPanelVisible, moodConfig.className]
   );
 
   useEffect(() => {
@@ -184,12 +191,12 @@ export function PetWindow() {
   );
 
   return (
-    <main className={shellClassName} aria-label="桌面小怪兽">
+    <main className={shellClassName} aria-label={appearanceConfig.windowLabel}>
       <section
         className="pet-stage"
         data-tauri-drag-region
         onMouseDown={startWindowDrag}
-        aria-label="拖动小怪兽"
+        aria-label={appearanceConfig.dragLabel}
       >
         <div className="pet-shadow" data-tauri-drag-region />
         <div className="pet-body" data-tauri-drag-region>
