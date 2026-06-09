@@ -8,6 +8,7 @@ import {
 } from "../feeding/petFeeding";
 import {
   DEFAULT_PET_APPEARANCE_ID,
+  getNextPetAppearanceId,
   isPetAppearanceId,
   petAppearanceConfigs,
   petAppearanceOrder,
@@ -231,15 +232,7 @@ export function PetWindow() {
   );
 
   const cycleAppearance = useCallback(() => {
-    setSelectedAppearanceId((currentAppearanceId) => {
-      const currentIndex = petAppearanceOrder.indexOf(currentAppearanceId);
-      const nextIndex =
-        currentIndex === -1
-          ? 0
-          : (currentIndex + 1) % petAppearanceOrder.length;
-
-      return petAppearanceOrder[nextIndex];
-    });
+    setSelectedAppearanceId(getNextPetAppearanceId);
   }, []);
 
   return (

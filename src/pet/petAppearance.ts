@@ -64,3 +64,13 @@ export const petAppearanceOrder: PetAppearanceId[] = ["monster", "cat", "dog"];
 export function isPetAppearanceId(value: string): value is PetAppearanceId {
   return value in petAppearanceConfigs;
 }
+
+export function getNextPetAppearanceId(
+  currentAppearanceId: PetAppearanceId
+): PetAppearanceId {
+  const currentIndex = petAppearanceOrder.indexOf(currentAppearanceId);
+  const nextIndex =
+    currentIndex === -1 ? 0 : (currentIndex + 1) % petAppearanceOrder.length;
+
+  return petAppearanceOrder[nextIndex];
+}

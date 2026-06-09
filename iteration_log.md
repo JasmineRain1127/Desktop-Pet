@@ -577,3 +577,38 @@
 - 结束：2026-06-09 22:44:26 CST。
 - 实际耗时约 1 分 12 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔足够，本轮不需要调整自动任务节奏。
+
+## 2026-06-09 22:48 CST - Extract appearance cycling helper
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 16 个本地 commit 尚未推送。
+- 多形象主线已经形成可用闭环，后续更可能是测试、扩展形象或正式设置入口。
+- `PetWindow` 内仍直接计算下一个形象 ID，这个逻辑更适合放在形象配置模块中，方便复用和后续测试。
+
+### 本轮选择
+
+做一个小型代码演进：把形象循环计算抽到 `petAppearance.ts`。不改变用户行为，不改样式，不改持久化。
+
+### 修改内容
+
+- 新增 `getNextPetAppearanceId(currentAppearanceId)`。
+- 更新 `PetWindow` 的 `cycleAppearance`，直接使用该 helper。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 可以围绕 `getNextPetAppearanceId` 补一个轻量单元测试地基；如果不引入测试框架，则继续推进状态切换平滑的小设计。
+
+### 耗时判断
+
+- 开始：2026-06-09 22:48:15 CST。
+- 结束：2026-06-09 22:48:44 CST。
+- 实际耗时约 29 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔足够，本轮不需要调整自动任务节奏。
