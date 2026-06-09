@@ -222,6 +222,18 @@ export function PetWindow() {
     [appWindow]
   );
 
+  const cycleAppearance = useCallback(() => {
+    setSelectedAppearanceId((currentAppearanceId) => {
+      const currentIndex = petAppearanceOrder.indexOf(currentAppearanceId);
+      const nextIndex =
+        currentIndex === -1
+          ? 0
+          : (currentIndex + 1) % petAppearanceOrder.length;
+
+      return petAppearanceOrder[nextIndex];
+    });
+  }, []);
+
   return (
     <main className={shellClassName} aria-label={appearanceConfig.windowLabel}>
       <section
@@ -244,7 +256,14 @@ export function PetWindow() {
           </div>
         </div>
       </section>
-      <div className="pet-status">{moodConfig.label}</div>
+      <button
+        aria-label={`切换桌宠形象，当前是${appearanceConfig.label}`}
+        className="pet-status pet-appearance-cycle"
+        onClick={cycleAppearance}
+        type="button"
+      >
+        {moodConfig.label} · {appearanceConfig.label}
+      </button>
       {isDebugPanelVisible ? (
         <section className="pet-debug-panel" aria-label="心情调试面板">
           <div className="pet-mode-toggle" aria-label="心情控制模式">

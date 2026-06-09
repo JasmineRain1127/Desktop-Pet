@@ -328,11 +328,26 @@ body {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
   color: #182024;
+  cursor: default;
+  font: inherit;
   font-size: 13px;
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
   backdrop-filter: blur(10px);
+}
+
+.pet-appearance-cycle {
+  cursor: pointer;
+}
+
+.pet-appearance-cycle:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.pet-appearance-cycle:focus-visible {
+  outline: 2px solid #182024;
+  outline-offset: 2px;
 }
 
 .pet-debug-panel {
