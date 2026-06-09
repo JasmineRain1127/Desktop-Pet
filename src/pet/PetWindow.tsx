@@ -8,7 +8,9 @@ import {
 } from "../feeding/petFeeding";
 import {
   DEFAULT_PET_APPEARANCE_ID,
-  petAppearanceConfigs
+  petAppearanceConfigs,
+  petAppearanceOrder,
+  type PetAppearanceId
 } from "./petAppearance";
 import { petMoodConfigs, petMoodOrder, type PetMood } from "./petMood";
 import {
@@ -26,6 +28,8 @@ const POSITION_SAVE_DELAY_MS = 350;
 export function PetWindow() {
   const [isDebugPanelVisible, setIsDebugPanelVisible] = useState(false);
   const [debugMode, setDebugMode] = useState<DebugMode>("auto");
+  const [selectedAppearanceId, setSelectedAppearanceId] =
+    useState<PetAppearanceId>(DEFAULT_PET_APPEARANCE_ID);
   const [manualMood, setManualMood] = useState<PetMood>("idle");
   const [feedingMood, setFeedingMood] = useState<PetMood | null>(null);
   const [sensorSnapshot, setSensorSnapshot] = useState<PetSensorSnapshot>(
@@ -35,7 +39,7 @@ export function PetWindow() {
   const activeMood =
     feedingMood ?? (debugMode === "auto" ? automaticMood : manualMood);
   const moodConfig = petMoodConfigs[activeMood];
-  const appearanceConfig = petAppearanceConfigs[DEFAULT_PET_APPEARANCE_ID];
+  const appearanceConfig = petAppearanceConfigs[selectedAppearanceId];
   const appWindow = useMemo(() => getCurrentWindow(), []);
   const shellClassName = useMemo(
     () =>
@@ -232,6 +236,23 @@ export function PetWindow() {
             >
               手动模式
             </button>
+          </div>
+          <div className="pet-appearance-toggle" aria-label="形象选择">
+            {petAppearanceOrder.map((item) => {
+              const itemConfig = petAppearanceConfigs[item];
+
+              return (
+                <button
+                  aria-pressed={item === selectedAppearanceId}
+                  className="pet-appearance-button"
+                  key={item}
+                  onClick={() => setSelectedAppearanceId(item)}
+                  type="button"
+                >
+                  {itemConfig.label}
+                </button>
+              );
+            })}
           </div>
           <div className="pet-sensor-grid" aria-label="传感器数据">
             <div className="pet-sensor-item">

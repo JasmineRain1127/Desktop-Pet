@@ -100,3 +100,40 @@
 - 结束：2026-06-09 21:32:06 CST。
 - 实际耗时约 20 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔目前仍可继续观察；下一轮如果进入 UI 和样式，可能需要更长间隔。
+
+## 2026-06-09 21:36 CST - Debug appearance switcher
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 3 个本地 commit 尚未推送，仍符合默认不自动推送的策略。
+- `petAppearance.ts` 已有 `monster`、`cat`、`dog` 三个候选形象，但 UI 还没有任何预览入口。
+- 调试面板本来就用于开发态手动切换心情，因此适合承载一个临时运行时形象选择器，而不影响普通模式。
+
+### 本轮选择
+
+增加调试面板内的最小形象选择器。只做运行时 React 状态，不持久化设置，也不新增真实猫狗样式，先验证形象配置和 `PetWindow` class/aria 接线。
+
+### 修改内容
+
+- 在 `PetWindow` 中新增 `selectedAppearanceId` 状态，默认仍为 `monster`。
+- 从 `petAppearanceOrder` 渲染 `小怪兽`、`小猫`、`小狗` 三个形象按钮。
+- 点击形象按钮会切换 `appearanceConfig`，从而切换 shell class 和 aria 文案。
+- 在 `styles.css` 中新增形象按钮的紧凑三列样式。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 为 `is-appearance-cat` 和 `is-appearance-dog` 补最小 CSS 差异，例如耳朵形状、主体配色和脸部字号微调，让调试面板切换能看到真实外观变化。
+
+### 耗时判断
+
+- 开始：2026-06-09 21:36:42 CST。
+- 结束：2026-06-09 21:37:20 CST。
+- 实际耗时约 38 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔仍可继续观察；下一轮开始做视觉样式时，如果需要截图验证，建议调回 15 分钟以上。

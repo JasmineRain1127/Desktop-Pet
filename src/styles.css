@@ -298,6 +298,13 @@ body {
   width: 100%;
 }
 
+.pet-appearance-toggle {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  width: 100%;
+}
+
 .pet-mode-button {
   min-height: 26px;
   border: 1px solid rgba(24, 32, 36, 0.36);
@@ -311,7 +318,30 @@ body {
   cursor: pointer;
 }
 
+.pet-appearance-button {
+  min-height: 26px;
+  border: 1px solid rgba(24, 32, 36, 0.32);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.56);
+  color: #182024;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pet-appearance-button:hover {
+  background: rgba(255, 255, 255, 0.86);
+}
+
 .pet-mode-button[aria-pressed="true"] {
+  border-color: #182024;
+  background: #182024;
+  color: #ffffff;
+}
+
+.pet-appearance-button[aria-pressed="true"] {
   border-color: #182024;
   background: #182024;
   color: #ffffff;
