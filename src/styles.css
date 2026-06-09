@@ -75,6 +75,20 @@ body {
   animation: pet-breathe 2.7s ease-in-out infinite;
 }
 
+.is-appearance-cat .pet-body {
+  border-radius: 46% 46% 40% 40%;
+  background:
+    radial-gradient(circle at 34% 27%, rgba(255, 255, 255, 0.78), transparent 20%),
+    linear-gradient(145deg, #ffd7a8 0%, #f6a86f 58%, #d47452 100%);
+}
+
+.is-appearance-dog .pet-body {
+  border-radius: 48% 48% 44% 44%;
+  background:
+    radial-gradient(circle at 34% 27%, rgba(255, 255, 255, 0.76), transparent 20%),
+    linear-gradient(145deg, #f0d3a2 0%, #d49a62 58%, #9b6542 100%);
+}
+
 .is-focused .pet-body {
   animation: pet-focused 1.7s ease-in-out infinite;
 }
@@ -138,6 +152,21 @@ body {
   background: #65d9bd;
 }
 
+.is-appearance-cat .pet-ear {
+  top: -15%;
+  width: 27%;
+  border-radius: 26% 72% 24% 72%;
+  background: #f6a86f;
+}
+
+.is-appearance-dog .pet-ear {
+  top: 2%;
+  width: 24%;
+  aspect-ratio: 0.62;
+  border-radius: 60% 48% 58% 48%;
+  background: #9b6542;
+}
+
 .is-stressed .pet-ear,
 .is-overheated .pet-ear,
 .is-happy .pet-ear {
@@ -166,6 +195,26 @@ body {
   rotate: 108deg;
 }
 
+.is-appearance-cat .pet-ear-left {
+  left: 16%;
+  rotate: -30deg;
+}
+
+.is-appearance-cat .pet-ear-right {
+  right: 16%;
+  rotate: 120deg;
+}
+
+.is-appearance-dog .pet-ear-left {
+  left: 5%;
+  rotate: 12deg;
+}
+
+.is-appearance-dog .pet-ear-right {
+  right: 5%;
+  rotate: -12deg;
+}
+
 .pet-face {
   position: relative;
   z-index: 1;
@@ -177,6 +226,15 @@ body {
   pointer-events: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+.is-appearance-cat .pet-face {
+  font-size: clamp(1.25rem, 10vw, 2.2rem);
+}
+
+.is-appearance-dog .pet-face {
+  padding-top: 10%;
+  font-size: clamp(1.2rem, 9.5vw, 2.1rem);
 }
 
 .pet-sweat {
