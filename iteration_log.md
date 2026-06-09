@@ -684,3 +684,39 @@
 - 结束：2026-06-09 22:59:03 CST。
 - 实际耗时约 48 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔足够，本轮不需要调整自动任务节奏。
+
+## 2026-06-09 23:03 CST - Centralize mood thresholds
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 19 个本地 commit 尚未推送。
+- 多形象主线已经闭环，下一条较自然的产品打磨方向是状态切换平滑/防抖。
+- `deriveMoodFromSensors` 里的 CPU、打字和空闲阈值仍以散落常量存在，不利于后续统一调参。
+
+### 本轮选择
+
+先做无行为变化的代码整理：把传感器到心情的阈值集中到 `petSensorMoodThresholds`。这为后续平滑曲线、迟滞或防抖设计打地基。
+
+### 修改内容
+
+- 新增集中式 `petSensorMoodThresholds` 配置对象。
+- 更新 `deriveMoodFromSensors`，从配置对象读取 CPU、打字和空闲阈值。
+- 保持原有阈值数值和心情判断顺序不变。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 可以继续做状态切换平滑的最小设计，例如先增加一个纯函数来判断心情变化是否应延迟，暂不接入 UI。
+
+### 耗时判断
+
+- 开始：2026-06-09 23:03:16 CST。
+- 结束：2026-06-09 23:03:48 CST。
+- 实际耗时约 32 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔足够，本轮不需要调整自动任务节奏。
