@@ -119,6 +119,10 @@ pub fn run() {
                     .build(app)?;
 
                 if let Some(window) = app.get_webview_window("main") {
+                    if let Err(error) = window.set_shadow(false) {
+                        eprintln!("Unable to disable main window shadow: {error}");
+                    }
+
                     window_position::restore_main_window_position(app.handle(), &window);
 
                     window.on_window_event(|event| {
