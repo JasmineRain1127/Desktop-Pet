@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, isTauri } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
@@ -57,7 +57,7 @@ export function PetWindow() {
   const moodConfig = petMoodConfigs[activeMood];
   const appearanceConfig = petAppearanceConfigs[selectedAppearanceId];
   const face = appearanceConfig.faces?.[activeMood] ?? moodConfig.face;
-  const appWindow = useMemo(() => getCurrentWindow(), []);
+  const appWindow = useMemo(() => (isTauri() ? getCurrentWindow() : null), []);
   const shellClassName = useMemo(
     () =>
       `pet-shell ${appearanceConfig.shellClassName} ${
@@ -131,6 +131,10 @@ export function PetWindow() {
   }, [selectedAppearanceId]);
 
   useEffect(() => {
+    if (!appWindow) {
+      return;
+    }
+
     let disposed = false;
     let unlisten: UnlistenFn | undefined;
     let saveTimer: number | undefined;
@@ -209,6 +213,10 @@ export function PetWindow() {
 
   const startWindowDrag = useCallback(
     (event: MouseEvent<HTMLElement>) => {
+      if (!appWindow) {
+        return;
+      }
+
       if (event.button !== 0) {
         return;
       }
