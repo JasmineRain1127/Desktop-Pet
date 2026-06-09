@@ -501,3 +501,38 @@
 - 结束：2026-06-09 22:33:01 CST。
 - 实际耗时约 19 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔足够，本轮不需要调整自动任务节奏。
+
+## 2026-06-09 22:38 CST - Appearance pill hover feedback
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 14 个本地 commit 尚未推送。
+- 状态胶囊已有 title 提示，但 hover 反馈只有背景变亮，可点击感还可以更明确。
+- 之前 300x220 视觉验收已经确认状态胶囊尺寸安全，因此本轮可以只做轻量动效。
+
+### 本轮选择
+
+给形象切换状态胶囊增加轻微 hover/focus 上浮和阴影反馈。只改 CSS，不改变交互逻辑和布局尺寸。
+
+### 修改内容
+
+- 为 `.pet-status` 增加背景、位移和阴影 transition。
+- 为 `.pet-appearance-cycle:hover` 和 `:focus-visible` 增加轻微 `translateY(-1px)` 和浅阴影。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 可以开始整理并推送当前多形象分支，或继续做一个小狗状态的浏览器点击验收。
+
+### 耗时判断
+
+- 开始：2026-06-09 22:38:10 CST。
+- 结束：2026-06-09 22:38:34 CST。
+- 实际耗时约 24 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔足够，本轮不需要调整自动任务节奏。

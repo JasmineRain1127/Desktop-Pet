@@ -335,6 +335,10 @@ body {
   line-height: 1.2;
   text-align: center;
   backdrop-filter: blur(10px);
+  transition:
+    background 140ms ease,
+    transform 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .pet-appearance-cycle {
@@ -343,11 +347,15 @@ body {
 
 .pet-appearance-cycle:hover {
   background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 14px rgba(7, 33, 38, 0.12);
+  transform: translateY(-1px);
 }
 
 .pet-appearance-cycle:focus-visible {
   outline: 2px solid #182024;
   outline-offset: 2px;
+  box-shadow: 0 6px 14px rgba(7, 33, 38, 0.12);
+  transform: translateY(-1px);
 }
 
 .pet-debug-panel {
