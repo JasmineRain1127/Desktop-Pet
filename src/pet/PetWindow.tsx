@@ -40,6 +40,7 @@ export function PetWindow() {
     feedingMood ?? (debugMode === "auto" ? automaticMood : manualMood);
   const moodConfig = petMoodConfigs[activeMood];
   const appearanceConfig = petAppearanceConfigs[selectedAppearanceId];
+  const face = appearanceConfig.faces?.[activeMood] ?? moodConfig.face;
   const appWindow = useMemo(() => getCurrentWindow(), []);
   const shellClassName = useMemo(
     () =>
@@ -212,7 +213,7 @@ export function PetWindow() {
             Z
           </div>
           <div className="pet-face" data-tauri-drag-region>
-            {moodConfig.face}
+            {face}
           </div>
         </div>
       </section>
