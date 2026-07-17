@@ -16,9 +16,11 @@ import {
 } from "./petAppearance";
 import { petMoodConfigs, petMoodOrder, type PetMood } from "./petMood";
 import {
+  AUTOMATIC_MOOD_TRANSITION_DELAY_MS,
   deriveMoodFromSensors,
   formatIdleSeconds,
   initialSensorSnapshot,
+  shouldDelayAutomaticMoodChange,
   type PetSensorSnapshot
 } from "./petSimulation";
 import { listenToSensorSnapshots } from "./petSensorBridge";
@@ -53,8 +55,10 @@ export function PetWindow() {
     initialSensorSnapshot
   );
   const automaticMood = deriveMoodFromSensors(sensorSnapshot);
+  const [displayedAutomaticMood, setDisplayedAutomaticMood] =
+    useState<PetMood>(automaticMood);
   const activeMood =
-    feedingMood ?? (debugMode === "auto" ? automaticMood : manualMood);
+    feedingMood ?? (debugMode === "auto" ? displayedAutomaticMood : manualMood);
   const moodConfig = petMoodConfigs[activeMood];
   const appearanceConfig = petAppearanceConfigs[selectedAppearanceId];
   const face = appearanceConfig.faces?.[activeMood] ?? moodConfig.face;
@@ -88,6 +92,25 @@ export function PetWindow() {
   useEffect(() => {
     return listenToSensorSnapshots(setSensorSnapshot);
   }, []);
+
+  useEffect(() => {
+    if (automaticMood === displayedAutomaticMood) {
+      return;
+    }
+
+    if (!shouldDelayAutomaticMoodChange(displayedAutomaticMood, automaticMood)) {
+      setDisplayedAutomaticMood(automaticMood);
+      return;
+    }
+
+    const transitionTimer = window.setTimeout(() => {
+      setDisplayedAutomaticMood(automaticMood);
+    }, AUTOMATIC_MOOD_TRANSITION_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(transitionTimer);
+    };
+  }, [automaticMood, displayedAutomaticMood]);
 
   useEffect(() => {
     let disposed = false;

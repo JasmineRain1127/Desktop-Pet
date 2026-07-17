@@ -720,3 +720,39 @@
 - 结束：2026-06-09 23:03:48 CST。
 - 实际耗时约 32 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔足够，本轮不需要调整自动任务节奏。
+
+## 2026-07-17 23:52 CST - Smooth automatic mood transitions
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 20 个本地 commit 尚未推送。
+- 最近一轮已经把 CPU、打字和空闲阈值集中到 `petSensorMoodThresholds`，为状态切换平滑打好了地基。
+- 当前自动心情仍是传感器快照一变就立即切换，容易在阈值边缘出现表情跳动。
+
+### 本轮选择
+
+做一个很小的体验打磨：只给普通自动心情变化增加 450ms 延迟；`overheated`、`sleeping` 以及从困倦/睡眠中醒来的状态仍即时响应。
+
+### 修改内容
+
+- 新增 `AUTOMATIC_MOOD_TRANSITION_DELAY_MS` 和 `shouldDelayAutomaticMoodChange`，集中描述哪些自动心情变化可以短暂延迟。
+- `PetWindow` 新增 `displayedAutomaticMood`，自动模式展示经过短暂防抖后的心情。
+- 投喂状态覆盖、调试面板手动模式、多形象显示和隐私边界保持不变。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 可以继续补一个轻量测试或手动模拟用例，验证 `shouldDelayAutomaticMoodChange` 对普通变化、过载、睡眠和醒来的判断。
+
+### 耗时判断
+
+- 开始：2026-07-17 23:51:41 CST。
+- 结束：2026-07-17 23:52:21 CST。
+- 实际耗时约 40 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔足够，本轮不需要调整自动任务节奏。

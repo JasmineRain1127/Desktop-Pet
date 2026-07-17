@@ -17,6 +17,8 @@ const petSensorMoodThresholds = {
   }
 } as const;
 
+export const AUTOMATIC_MOOD_TRANSITION_DELAY_MS = 450;
+
 export type PetSensorSnapshot = {
   cpuPercent: number;
   typingRate: number;
@@ -60,6 +62,25 @@ export function deriveMoodFromSensors(snapshot: PetSensorSnapshot): PetMood {
   }
 
   return "idle";
+}
+
+export function shouldDelayAutomaticMoodChange(
+  currentMood: PetMood,
+  nextMood: PetMood
+) {
+  if (currentMood === nextMood) {
+    return false;
+  }
+
+  if (nextMood === "overheated" || nextMood === "sleeping") {
+    return false;
+  }
+
+  if (currentMood === "sleepy" || currentMood === "sleeping") {
+    return false;
+  }
+
+  return true;
 }
 
 export function formatIdleSeconds(seconds: number) {
