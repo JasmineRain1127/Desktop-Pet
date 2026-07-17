@@ -974,3 +974,43 @@
 - 结束：2026-07-18 00:22:14 CST。
 - 实际耗时约 45 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔足够，本轮不需要调整自动任务节奏。
+
+## 2026-07-18 00:29 CST - Add appearance settings shell
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 27 个本地 commit 尚未推送。
+- 上一轮已经拆清楚多形象正式设置入口边界，但代码中只有主窗口和投喂窗口，还没有设置窗口 label 或托盘设置入口。
+- 当前形象选择已经通过本机 `localStorage` 保存，适合被设置窗口复用；隐私边界不需要变化。
+
+### 本轮选择
+
+做正式设置入口的最小可用壳：托盘新增“设置”，打开独立设置窗口；设置窗口只提供小怪兽、小猫、小狗形象选择，并复用现有本机前端存储。
+
+### 修改内容
+
+- `App` 支持 `settings` 窗口 label，渲染新的 `SettingsWindow`。
+- 新增 `src/settings/SettingsWindow.tsx`，显示三种形象并保存选择。
+- 将形象存储 key、读取、保存逻辑集中到 `petAppearance.ts`，主窗口和设置窗口共用。
+- `PetWindow` 监听跨窗口 storage 变化，让设置窗口选择能同步到主窗口。
+- 托盘菜单新增“设置”，Rust 侧新增 `show_settings_window`。
+- 新增设置窗口基础样式；未读取键盘内容、投喂文件正文或上传任何数据。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run check` 通过。
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 可以做一次本地窗口视觉验证，确认设置窗口尺寸、三张形象卡片和跨窗口同步体验；或继续微调设置页文案/样式。
+
+### 耗时判断
+
+- 开始：2026-07-18 00:26:29 CST。
+- 结束：2026-07-18 00:29:51 CST。
+- 实际耗时约 3 分 22 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔仍可接受，本轮不需要调整自动任务节奏。

@@ -12,6 +12,7 @@ export type PetAppearanceConfig = {
 };
 
 export const DEFAULT_PET_APPEARANCE_ID: PetAppearanceId = "monster";
+export const PET_APPEARANCE_STORAGE_KEY = "desktop-pet-appearance";
 
 export const petAppearanceConfigs: Record<PetAppearanceId, PetAppearanceConfig> = {
   monster: {
@@ -63,6 +64,28 @@ export const petAppearanceOrder: PetAppearanceId[] = ["monster", "cat", "dog"];
 
 export function isPetAppearanceId(value: string): value is PetAppearanceId {
   return value in petAppearanceConfigs;
+}
+
+export function readStoredAppearanceId(): PetAppearanceId {
+  try {
+    const storedValue = window.localStorage.getItem(PET_APPEARANCE_STORAGE_KEY);
+
+    if (storedValue && isPetAppearanceId(storedValue)) {
+      return storedValue;
+    }
+  } catch (error: unknown) {
+    console.warn("Unable to read pet appearance.", error);
+  }
+
+  return DEFAULT_PET_APPEARANCE_ID;
+}
+
+export function saveStoredAppearanceId(appearanceId: PetAppearanceId) {
+  try {
+    window.localStorage.setItem(PET_APPEARANCE_STORAGE_KEY, appearanceId);
+  } catch (error: unknown) {
+    console.warn("Unable to save pet appearance.", error);
+  }
 }
 
 export function getNextPetAppearanceId(

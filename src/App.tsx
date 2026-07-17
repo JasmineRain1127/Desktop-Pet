@@ -1,8 +1,19 @@
 import { FeedingWindow } from "./feeding/FeedingWindow";
 import { PetWindow } from "./pet/PetWindow";
+import { SettingsWindow } from "./settings/SettingsWindow";
 
 export function App() {
-  return getCurrentWindowLabel() === "feeding" ? <FeedingWindow /> : <PetWindow />;
+  const windowLabel = getCurrentWindowLabel();
+
+  if (windowLabel === "feeding") {
+    return <FeedingWindow />;
+  }
+
+  if (windowLabel === "settings") {
+    return <SettingsWindow />;
+  }
+
+  return <PetWindow />;
 }
 
 function getCurrentWindowLabel() {

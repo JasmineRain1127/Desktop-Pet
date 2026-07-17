@@ -7,11 +7,13 @@ import {
   type FeedingResult
 } from "../feeding/petFeeding";
 import {
-  DEFAULT_PET_APPEARANCE_ID,
   getNextPetAppearanceId,
   isPetAppearanceId,
+  PET_APPEARANCE_STORAGE_KEY,
   petAppearanceConfigs,
   petAppearanceOrder,
+  readStoredAppearanceId,
+  saveStoredAppearanceId,
   type PetAppearanceId
 } from "./petAppearance";
 import { petMoodConfigs, petMoodOrder, type PetMood } from "./petMood";
@@ -28,21 +30,6 @@ import { listenToSensorSnapshots } from "./petSensorBridge";
 type DebugMode = "auto" | "manual";
 const DEBUG_PANEL_EVENT = "debug_panel_visibility_changed";
 const POSITION_SAVE_DELAY_MS = 350;
-const APPEARANCE_STORAGE_KEY = "desktop-pet-appearance";
-
-function readStoredAppearanceId(): PetAppearanceId {
-  try {
-    const storedValue = window.localStorage.getItem(APPEARANCE_STORAGE_KEY);
-
-    if (storedValue && isPetAppearanceId(storedValue)) {
-      return storedValue;
-    }
-  } catch (error: unknown) {
-    console.warn("Unable to read pet appearance.", error);
-  }
-
-  return DEFAULT_PET_APPEARANCE_ID;
-}
 
 export function PetWindow() {
   const [isDebugPanelVisible, setIsDebugPanelVisible] = useState(false);
@@ -144,15 +131,26 @@ export function PetWindow() {
   }, [isDebugPanelVisible]);
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(
-        APPEARANCE_STORAGE_KEY,
-        selectedAppearanceId
-      );
-    } catch (error: unknown) {
-      console.warn("Unable to save pet appearance.", error);
-    }
+    saveStoredAppearanceId(selectedAppearanceId);
   }, [selectedAppearanceId]);
+
+  useEffect(() => {
+    function updateStoredAppearance(event: StorageEvent) {
+      if (
+        event.key === PET_APPEARANCE_STORAGE_KEY &&
+        event.newValue &&
+        isPetAppearanceId(event.newValue)
+      ) {
+        setSelectedAppearanceId(event.newValue);
+      }
+    }
+
+    window.addEventListener("storage", updateStoredAppearance);
+
+    return () => {
+      window.removeEventListener("storage", updateStoredAppearance);
+    };
+  }, []);
 
   useEffect(() => {
     if (!appWindow) {
