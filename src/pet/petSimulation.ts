@@ -19,6 +19,12 @@ const petSensorMoodThresholds = {
 
 export const AUTOMATIC_MOOD_TRANSITION_DELAY_MS = 450;
 
+const immediateAutomaticMoodTargets = new Set<PetMood>([
+  "overheated",
+  "sleeping"
+]);
+const immediateAutomaticMoodSources = new Set<PetMood>(["sleepy", "sleeping"]);
+
 export type PetSensorSnapshot = {
   cpuPercent: number;
   typingRate: number;
@@ -67,16 +73,16 @@ export function deriveMoodFromSensors(snapshot: PetSensorSnapshot): PetMood {
 export function shouldDelayAutomaticMoodChange(
   currentMood: PetMood,
   nextMood: PetMood
-) {
+): boolean {
   if (currentMood === nextMood) {
     return false;
   }
 
-  if (nextMood === "overheated" || nextMood === "sleeping") {
+  if (immediateAutomaticMoodTargets.has(nextMood)) {
     return false;
   }
 
-  if (currentMood === "sleepy" || currentMood === "sleeping") {
+  if (immediateAutomaticMoodSources.has(currentMood)) {
     return false;
   }
 

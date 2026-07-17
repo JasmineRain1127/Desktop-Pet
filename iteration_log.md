@@ -756,3 +756,39 @@
 - 结束：2026-07-17 23:52:21 CST。
 - 实际耗时约 40 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔足够，本轮不需要调整自动任务节奏。
+
+## 2026-07-17 23:56 CST - Clarify mood transition policy
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 21 个本地 commit 尚未推送。
+- 上一轮已经接入了自动心情的 450ms 轻量防抖，日志建议后续补验证。
+- 项目当前没有前端测试框架，不适合为了一个纯函数立刻引入新依赖。
+
+### 本轮选择
+
+做一个无行为变化的代码整理：把自动心情切换中“必须即时响应”的来源和目标状态提成命名集合，并给判断函数补明确返回类型。
+
+### 修改内容
+
+- 新增 `immediateAutomaticMoodTargets`，集中表示 `overheated` 和 `sleeping` 这类不应延迟进入的状态。
+- 新增 `immediateAutomaticMoodSources`，集中表示从 `sleepy` 和 `sleeping` 醒来/离开时不应延迟。
+- `shouldDelayAutomaticMoodChange` 改为读取命名集合，并声明返回 `boolean`。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 可以继续小步推进测试地基，例如先评估是否用现有 TypeScript 编译检查覆盖纯策略，或之后再引入轻量测试框架。
+
+### 耗时判断
+
+- 开始：2026-07-17 23:55:45 CST。
+- 结束：2026-07-17 23:56:22 CST。
+- 实际耗时约 37 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔足够，本轮不需要调整自动任务节奏。
