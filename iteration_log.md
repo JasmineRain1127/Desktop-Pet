@@ -1051,3 +1051,39 @@
 - 结束：2026-07-18 00:32:05 CST。
 - 实际耗时约 36 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔足够，本轮不需要调整自动任务节奏。
+
+## 2026-07-18 00:37 CST - Document settings tray item
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 29 个本地 commit 尚未推送。
+- 托盘菜单已经新增“设置”，但 `README.md` 的已实现功能列表仍少写了这一项。
+- 本轮没有上一轮残留改动。
+
+### 本轮选择
+
+做一个小文档同步：把托盘菜单功能列表中的“设置”补上，避免说明落后于实际菜单。
+
+### 修改内容
+
+- 更新 `README.md` 的系统托盘菜单列表。
+- 未改动源码、隐私边界或自动任务间隔。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run check` 通过。
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 可以做设置窗口视觉验证，或给设置页补一个更清楚的选择状态提示。
+
+### 耗时判断
+
+- 开始：2026-07-18 00:36:29 CST。
+- 结束：2026-07-18 00:37:10 CST。
+- 实际耗时约 41 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔足够，本轮不需要调整自动任务节奏。
