@@ -900,3 +900,40 @@
 - 结束：2026-07-18 00:12:17 CST。
 - 实际耗时约 1 分 18 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔足够，本轮不需要调整自动任务节奏。
+
+## 2026-07-18 00:17 CST - Document combined check command
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 25 个本地 commit 尚未推送。
+- 上一轮已经新增 `npm run check`，但 `README.md` 的本地开发区域仍只列了四条分散检查命令。
+- 本轮没有上一轮残留改动。
+
+### 本轮选择
+
+做一个小文档同步：把 `npm run check` 作为常用检查入口写进 README，同时保留分开定位问题时的原始命令。
+
+### 修改内容
+
+- 更新 `README.md` 的常用检查命令区域。
+- 新增 `/opt/homebrew/bin/fnm exec npm run check`。
+- 将四条原始命令说明为“分开定位问题”时使用。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run check` 通过。
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 可以继续小步推进测试地基，或开始为多形象设置入口拆一个只改计划/边界的小任务。
+
+### 耗时判断
+
+- 开始：2026-07-18 00:16:29 CST。
+- 结束：2026-07-18 00:17:01 CST。
+- 实际耗时约 32 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔足够，本轮不需要调整自动任务节奏。

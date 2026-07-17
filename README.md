@@ -43,6 +43,12 @@
 常用检查命令：
 
 ```bash
+/opt/homebrew/bin/fnm exec npm run check
+```
+
+如果需要分开定位问题，可以单独运行：
+
+```bash
 /opt/homebrew/bin/fnm exec npm run build
 /Users/jasmine/.cargo/bin/cargo fmt --check
 /Users/jasmine/.cargo/bin/cargo check
