@@ -2,6 +2,8 @@ import { FeedingWindow } from "./feeding/FeedingWindow";
 import { PetWindow } from "./pet/PetWindow";
 import { SettingsWindow } from "./settings/SettingsWindow";
 
+type AppWindowLabel = "main" | "feeding" | "settings";
+
 export function App() {
   const windowLabel = getCurrentWindowLabel();
 
@@ -16,7 +18,7 @@ export function App() {
   return <PetWindow />;
 }
 
-function getCurrentWindowLabel() {
+function getCurrentWindowLabel(): AppWindowLabel {
   const tauriInternals = (
     window as Window & {
       __TAURI_INTERNALS__?: {
@@ -28,6 +30,21 @@ function getCurrentWindowLabel() {
       };
     }
   ).__TAURI_INTERNALS__;
+  const tauriWindowLabel = tauriInternals?.metadata?.currentWindow?.label;
 
-  return tauriInternals?.metadata?.currentWindow?.label ?? "main";
+  if (isAppWindowLabel(tauriWindowLabel)) {
+    return tauriWindowLabel;
+  }
+
+  const browserWindowLabel = window.location.hash.replace(/^#\/?/, "");
+
+  if (isAppWindowLabel(browserWindowLabel)) {
+    return browserWindowLabel;
+  }
+
+  return "main";
+}
+
+function isAppWindowLabel(value: unknown): value is AppWindowLabel {
+  return value === "main" || value === "feeding" || value === "settings";
 }

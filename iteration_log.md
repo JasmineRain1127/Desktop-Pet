@@ -1124,3 +1124,40 @@
 - 结束：2026-07-18 00:42:13 CST。
 - 实际耗时约 44 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔足够，本轮不需要调整自动任务节奏。
+
+## 2026-07-18 00:47 CST - Enable browser window hash preview
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 31 个本地 commit 尚未推送。
+- 设置窗口已经能通过 Tauri window label 渲染，但普通 Vite 浏览器预览默认只能进入主窗口，下一轮视觉验证不方便。
+- 本轮没有上一轮残留改动。
+
+### 本轮选择
+
+做一个小型开发便利：在非 Tauri 浏览器环境中允许用 URL hash 选择 `main`、`feeding` 或 `settings` 视图；Tauri 环境仍优先使用真实窗口 label。
+
+### 修改内容
+
+- `App` 新增 `AppWindowLabel` 类型和 `isAppWindowLabel` 判断。
+- `getCurrentWindowLabel` 先读取 Tauri window label；没有有效 label 时再读取浏览器 hash。
+- 不改动产品窗口创建、设置存储、隐私边界或自动任务间隔。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run check` 通过。
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 可以启动 Vite，在 `#settings` 下做设置窗口的浏览器视觉验证，确认 360x300 尺寸附近布局不拥挤。
+
+### 耗时判断
+
+- 开始：2026-07-18 00:46:29 CST。
+- 结束：2026-07-18 00:47:14 CST。
+- 实际耗时约 45 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔足够，本轮不需要调整自动任务节奏。
