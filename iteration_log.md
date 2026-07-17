@@ -1161,3 +1161,40 @@
 - 结束：2026-07-18 00:47:14 CST。
 - 实际耗时约 45 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔足够，本轮不需要调整自动任务节奏。
+
+## 2026-07-18 00:52 CST - React to preview hash changes
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 32 个本地 commit 尚未推送。
+- 上一轮允许浏览器用 hash 预览 `settings`、`feeding`、`main`，但如果页面已经打开后再改 hash，React 不会自动重渲染。
+- 本轮没有上一轮残留改动。
+
+### 本轮选择
+
+做一个小开发体验修补：让 `App` 监听 `hashchange`，浏览器预览中切换 hash 时能实时切换窗口视图；Tauri 真实窗口 label 逻辑保持不变。
+
+### 修改内容
+
+- `App` 使用 state 保存当前窗口 label。
+- 新增 `hashchange` 监听，更新浏览器预览窗口 label。
+- 未改动产品窗口创建、设置存储、隐私边界或自动任务间隔。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run check` 通过。
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 可以启动 Vite 并在 `#settings` 下做一次设置窗口视觉验证。
+
+### 耗时判断
+
+- 开始：2026-07-18 00:51:29 CST。
+- 结束：2026-07-18 00:52:32 CST。
+- 实际耗时约 1 分 3 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔足够，本轮不需要调整自动任务节奏。

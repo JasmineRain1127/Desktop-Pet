@@ -1,11 +1,26 @@
 import { FeedingWindow } from "./feeding/FeedingWindow";
 import { PetWindow } from "./pet/PetWindow";
 import { SettingsWindow } from "./settings/SettingsWindow";
+import { useEffect, useState } from "react";
 
 type AppWindowLabel = "main" | "feeding" | "settings";
 
 export function App() {
-  const windowLabel = getCurrentWindowLabel();
+  const [windowLabel, setWindowLabel] = useState<AppWindowLabel>(
+    getCurrentWindowLabel
+  );
+
+  useEffect(() => {
+    function updateWindowLabel() {
+      setWindowLabel(getCurrentWindowLabel());
+    }
+
+    window.addEventListener("hashchange", updateWindowLabel);
+
+    return () => {
+      window.removeEventListener("hashchange", updateWindowLabel);
+    };
+  }, []);
 
   if (windowLabel === "feeding") {
     return <FeedingWindow />;
