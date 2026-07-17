@@ -1087,3 +1087,40 @@
 - 结束：2026-07-18 00:37:10 CST。
 - 实际耗时约 41 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔足够，本轮不需要调整自动任务节奏。
+
+## 2026-07-18 00:42 CST - Clarify selected appearance state
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 30 个本地 commit 尚未推送。
+- 设置窗口已经能选择形象，但选中状态主要依赖边框和 `aria-pressed`，可见提示还不够直接。
+- 本轮没有上一轮残留改动。
+
+### 本轮选择
+
+做一个小体验打磨：在设置页形象卡片上补充“已选择/可选择”的稳定状态文字，并给按钮增加更明确的 aria-label。
+
+### 修改内容
+
+- `SettingsWindow` 的形象按钮新增当前选择 aria-label。
+- 形象卡片下方新增状态文字，选中时显示“已选择”，未选中时显示“可选择”。
+- 更新设置页样式，保持卡片高度稳定；未改动存储逻辑、托盘入口或隐私边界。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run check` 通过。
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 可以做设置窗口视觉验证，确认 360x300 窗口内三张卡片和状态文字不拥挤。
+
+### 耗时判断
+
+- 开始：2026-07-18 00:41:29 CST。
+- 结束：2026-07-18 00:42:13 CST。
+- 实际耗时约 44 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔足够，本轮不需要调整自动任务节奏。

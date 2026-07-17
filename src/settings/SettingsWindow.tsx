@@ -30,6 +30,7 @@ export function SettingsWindow() {
 
             return (
               <button
+                aria-label={`${config.label}${isSelected ? "，当前选择" : ""}`}
                 aria-pressed={isSelected}
                 className="settings-appearance-card"
                 key={appearanceId}
@@ -42,6 +43,9 @@ export function SettingsWindow() {
                   </span>
                 </span>
                 <strong>{config.label}</strong>
+                <span className="settings-appearance-state">
+                  {isSelected ? "已选择" : "可选择"}
+                </span>
               </button>
             );
           })}
