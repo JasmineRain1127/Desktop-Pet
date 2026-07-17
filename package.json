@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "check": "node scripts/check.mjs",
     "preview": "vite preview",
     "tauri": "node scripts/run-with-project-env.mjs tauri"
   },

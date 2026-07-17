@@ -863,3 +863,40 @@
 - 结束：2026-07-18 00:06:31 CST。
 - 实际耗时约 32 秒，任务已完成，不需要延续到下一轮。
 - 5 分钟间隔足够，本轮不需要调整自动任务节奏。
+
+## 2026-07-18 00:12 CST - Add combined check script
+
+### 本轮观察
+
+- 当前工作区开始时干净，分支已有 24 个本地 commit 尚未推送。
+- 每轮自动迭代都要重复运行前端构建和三个 Rust 检查，命令分散在 README 与自动任务说明中。
+- 本轮没有上一轮残留改动。
+
+### 本轮选择
+
+增加一个很小的工程化入口：新增 `npm run check`，按顺序执行前端 build、`cargo fmt --check`、`cargo check` 和 `cargo clippy -- -D warnings`。
+
+### 修改内容
+
+- 新增 `scripts/check.mjs`，复用项目本地 `node_modules/.bin` 与用户 cargo bin 路径，顺序执行四项检查。
+- 在 `package.json` 新增 `check` 脚本。
+- 未改动产品源码、隐私边界、桌宠行为或自动任务间隔。
+
+### 验证结果
+
+- `/opt/homebrew/bin/fnm exec npm run check` 通过。
+- `/opt/homebrew/bin/fnm exec npm run build` 通过。
+- `/Users/jasmine/.cargo/bin/cargo fmt --check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo check` 通过。
+- `/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings` 通过。
+
+### 下一轮建议
+
+- 可以在 README 的本地开发区域补充 `npm run check`，或继续推进测试地基/多形象设置入口拆分。
+
+### 耗时判断
+
+- 开始：2026-07-18 00:10:59 CST。
+- 结束：2026-07-18 00:12:17 CST。
+- 实际耗时约 1 分 18 秒，任务已完成，不需要延续到下一轮。
+- 5 分钟间隔足够，本轮不需要调整自动任务节奏。
