@@ -33,7 +33,7 @@ origin  git@github.com:JasmineRain1127/Desktop-Pet.git (push)
 npm ci
 npm run check
 npm run security:audit
-npm run tauri -- build --no-bundle
+npm run tauri -- build --bundles nsis
 ```
 
 ## 下载产物
@@ -44,7 +44,7 @@ npm run tauri -- build --no-bundle
 2. 进入 `Actions`
 3. 选择 `Windows Build`
 4. 打开成功的 workflow run
-5. 在 `Artifacts` 里下载 `desktop-pet-windows-exe`
+5. 在 `Artifacts` 里下载 `desktop-pet-windows-<version>`
 
 产物来自：
 
@@ -52,7 +52,7 @@ npm run tauri -- build --no-bundle
 src-tauri/target/release/desktop-pet.exe
 ```
 
-日常 `Windows Build` 只上传可运行的 `.exe`，避免安装器链路阻塞快速反馈。
+日常 `Windows Build` 同时验证可运行的 `.exe` 和 NSIS 安装器，上传带版本号的完整候选包。
 
 `.github/workflows/windows-release.yml` 是候选发布流程。手动运行时会生成：
 

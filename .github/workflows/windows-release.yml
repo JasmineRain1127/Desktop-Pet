@@ -2,18 +2,6 @@ name: Windows Release
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - main
-      - codex-window-position-memory
-    paths:
-      - ".github/workflows/windows-release.yml"
-      - "package.json"
-      - "package-lock.json"
-      - "scripts/verify-version.mjs"
-      - "src-tauri/Cargo.toml"
-      - "src-tauri/Cargo.lock"
-      - "src-tauri/tauri.conf.json"
   push:
     tags:
       - "v*"
@@ -68,30 +56,7 @@ jobs:
 
       - name: Assemble release files
         shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-          $version = "${{ steps.version.outputs.version }}"
-          $releaseDirectory = Join-Path $PWD "release"
-          New-Item -ItemType Directory -Path $releaseDirectory | Out-Null
-
-          $portableSource = Join-Path $PWD "src-tauri/target/release/desktop-pet.exe"
-          if (-not (Test-Path -LiteralPath $portableSource -PathType Leaf)) {
-            throw "Portable executable was not produced: $portableSource"
-          }
-
-          $installers = @(Get-ChildItem -LiteralPath "src-tauri/target/release/bundle/nsis" -Filter "*.exe" -File)
-          if ($installers.Count -ne 1) {
-            throw "Expected exactly one NSIS installer, found $($installers.Count)."
-          }
-
-          Copy-Item -LiteralPath $portableSource -Destination (Join-Path $releaseDirectory "Desktop-Pet_${version}_x64-portable.exe")
-          Copy-Item -LiteralPath $installers[0].FullName -Destination (Join-Path $releaseDirectory "Desktop-Pet_${version}_x64-setup.exe")
-
-          Get-ChildItem -LiteralPath $releaseDirectory -Filter "*.exe" -File |
-            Sort-Object Name |
-            Get-FileHash -Algorithm SHA256 |
-            ForEach-Object { "$($_.Hash.ToLowerInvariant())  $([IO.Path]::GetFileName($_.Path))" } |
-            Set-Content -LiteralPath (Join-Path $releaseDirectory "SHA256SUMS.txt") -Encoding ascii
+        run: ./scripts/package-windows-release.ps1 -Version "${{ steps.version.outputs.version }}"
 
       - name: Upload release candidate
         uses: actions/upload-artifact@v7

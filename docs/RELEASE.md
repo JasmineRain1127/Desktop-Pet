@@ -47,7 +47,7 @@ Desktop-Pet_<version>_x64-setup.exe
 SHA256SUMS.txt
 ```
 
-先按校验文件验证两个 EXE，再开始真机测试。日常 `Windows Build` 的 `desktop-pet-windows-exe` 仍可用于更快的便携版冒烟。
+先按校验文件验证两个 EXE，再开始真机测试。日常 `Windows Build` 也会上传相同结构的带版本候选包。
 
 ## 下载日常 Windows exe
 
@@ -55,10 +55,10 @@ SHA256SUMS.txt
 2. 点击 `Actions`
 3. 进入最新成功的 `Windows Build`
 4. 在页面底部找到 `Artifacts`
-5. 下载 `desktop-pet-windows-exe`
-6. 解压后得到 `desktop-pet.exe`
+5. 下载 `desktop-pet-windows-<version>`
+6. 解压后得到便携版、NSIS 安装版和校验文件
 
-产物对应路径：
+构建前的原始便携版对应路径：
 
 ```text
 src-tauri/target/release/desktop-pet.exe

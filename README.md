@@ -66,8 +66,8 @@
 当前版本为 `0.2.0-alpha.1`。功能冒烟优先使用免安装 `.exe`；安装流程测试使用 `Windows Release` 产出的 NSIS 安装包：
 
 1. 进入 GitHub Actions，选择 `Windows Build` 或 `Windows Release`
-2. `Windows Build` 提供日常便携版 `desktop-pet.exe`
-3. `Windows Release` 提供带版本号的便携版、NSIS 安装包和 `SHA256SUMS.txt`
+2. `Windows Build` 提供带版本号的便携版、NSIS 安装包和 `SHA256SUMS.txt`
+3. `Windows Release` 生成相同候选包，并在版本标签触发时发布到 GitHub Releases
 4. 公开发布只允许从 `v<项目版本>` 标签触发；版本不一致会直接失败
 
 详细发布流程见 [docs/RELEASE.md](docs/RELEASE.md)，Windows 构建说明见 [docs/WINDOWS_BUILD.md](docs/WINDOWS_BUILD.md)。

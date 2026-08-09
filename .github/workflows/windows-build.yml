@@ -50,13 +50,24 @@ jobs:
       - name: Check Tauri CLI
         run: npm run tauri -- --version
 
-      - name: Build Tauri Windows executable
-        run: npm run tauri -- build --no-bundle
+      - name: Read project version
+        id: version
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          "version=$version" >> $env:GITHUB_OUTPUT
 
-      - name: Upload Windows executable
+      - name: Build Tauri Windows executable and NSIS installer
+        run: npm run tauri -- build --bundles nsis
+
+      - name: Assemble release candidate
+        shell: pwsh
+        run: ./scripts/package-windows-release.ps1 -Version "${{ steps.version.outputs.version }}"
+
+      - name: Upload Windows release candidate
         uses: actions/upload-artifact@v7
         with:
-          name: desktop-pet-windows-exe
-          path: src-tauri/target/release/desktop-pet.exe
+          name: desktop-pet-windows-${{ steps.version.outputs.version }}
+          path: release/*
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
