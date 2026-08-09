@@ -8,24 +8,28 @@ import {
 } from "../feeding/petFeeding";
 import {
   getNextPetAppearanceId,
-  isPetAppearanceId,
-  PET_APPEARANCE_STORAGE_KEY,
   petAppearanceConfigs,
   petAppearanceOrder,
-  readStoredAppearanceId,
-  saveStoredAppearanceId,
   type PetAppearanceId
 } from "./petAppearance";
 import { petMoodConfigs, petMoodOrder, type PetMood } from "./petMood";
 import {
   AUTOMATIC_MOOD_TRANSITION_DELAY_MS,
-  deriveMoodFromSensors,
+  advanceAutomaticMoodState,
   formatIdleSeconds,
+  initialAutomaticMoodState,
   initialSensorSnapshot,
   shouldDelayAutomaticMoodChange,
   type PetSensorSnapshot
 } from "./petSimulation";
 import { listenToSensorSnapshots } from "./petSensorBridge";
+import {
+  defaultAppSettings,
+  initializeAppSettings,
+  listenToAppSettings,
+  updateAppSettings,
+  type AppSettings
+} from "../settings/appSettings";
 
 type DebugMode = "auto" | "manual";
 const DEBUG_PANEL_EVENT = "debug_panel_visibility_changed";
@@ -34,19 +38,27 @@ const POSITION_SAVE_DELAY_MS = 350;
 export function PetWindow() {
   const [isDebugPanelVisible, setIsDebugPanelVisible] = useState(false);
   const [debugMode, setDebugMode] = useState<DebugMode>("auto");
-  const [selectedAppearanceId, setSelectedAppearanceId] =
-    useState<PetAppearanceId>(readStoredAppearanceId);
+  const [appSettings, setAppSettings] = useState<AppSettings>(defaultAppSettings);
   const [manualMood, setManualMood] = useState<PetMood>("idle");
   const [feedingMood, setFeedingMood] = useState<PetMood | null>(null);
   const [sensorSnapshot, setSensorSnapshot] = useState<PetSensorSnapshot>(
     initialSensorSnapshot
   );
-  const automaticMood = deriveMoodFromSensors(sensorSnapshot);
+  const [automaticMoodState, setAutomaticMoodState] = useState(
+    initialAutomaticMoodState
+  );
+  const automaticMood = automaticMoodState.mood;
   const [displayedAutomaticMood, setDisplayedAutomaticMood] =
     useState<PetMood>(automaticMood);
   const activeMood =
-    feedingMood ?? (debugMode === "auto" ? displayedAutomaticMood : manualMood);
+    feedingMood ??
+    (debugMode === "manual"
+      ? manualMood
+      : appSettings.quietMode
+        ? "idle"
+        : displayedAutomaticMood);
   const moodConfig = petMoodConfigs[activeMood];
+  const selectedAppearanceId = appSettings.appearance;
   const appearanceConfig = petAppearanceConfigs[selectedAppearanceId];
   const face = appearanceConfig.faces?.[activeMood] ?? moodConfig.face;
   const appWindow = useMemo(() => (isTauri() ? getCurrentWindow() : null), []);
@@ -54,8 +66,13 @@ export function PetWindow() {
     () =>
       `pet-shell ${appearanceConfig.shellClassName} ${
         isDebugPanelVisible ? "has-debug-panel" : "is-compact"
-      } ${moodConfig.className}`,
-    [appearanceConfig.shellClassName, isDebugPanelVisible, moodConfig.className]
+      } ${appSettings.quietMode ? "is-quiet" : ""} ${moodConfig.className}`,
+    [
+      appSettings.quietMode,
+      appearanceConfig.shellClassName,
+      isDebugPanelVisible,
+      moodConfig.className
+    ]
   );
 
   useEffect(() => {
@@ -77,7 +94,37 @@ export function PetWindow() {
   }, []);
 
   useEffect(() => {
-    return listenToSensorSnapshots(setSensorSnapshot);
+    return listenToSensorSnapshots((snapshot) => {
+      setSensorSnapshot(snapshot);
+      setAutomaticMoodState((current) =>
+        advanceAutomaticMoodState(current, snapshot, Date.now())
+      );
+    });
+  }, []);
+
+  useEffect(() => {
+    let disposed = false;
+
+    initializeAppSettings()
+      .then(({ settings }) => {
+        if (!disposed) {
+          setAppSettings(settings);
+        }
+      })
+      .catch((error: unknown) => {
+        console.warn("Unable to initialize app settings.", error);
+      });
+
+    const stopListening = listenToAppSettings((settings) => {
+      if (!disposed) {
+        setAppSettings(settings);
+      }
+    });
+
+    return () => {
+      disposed = true;
+      stopListening();
+    };
   }, []);
 
   useEffect(() => {
@@ -129,28 +176,6 @@ export function PetWindow() {
       setDebugMode("auto");
     }
   }, [isDebugPanelVisible]);
-
-  useEffect(() => {
-    saveStoredAppearanceId(selectedAppearanceId);
-  }, [selectedAppearanceId]);
-
-  useEffect(() => {
-    function updateStoredAppearance(event: StorageEvent) {
-      if (
-        event.key === PET_APPEARANCE_STORAGE_KEY &&
-        event.newValue &&
-        isPetAppearanceId(event.newValue)
-      ) {
-        setSelectedAppearanceId(event.newValue);
-      }
-    }
-
-    window.addEventListener("storage", updateStoredAppearance);
-
-    return () => {
-      window.removeEventListener("storage", updateStoredAppearance);
-    };
-  }, []);
 
   useEffect(() => {
     if (!appWindow) {
@@ -252,9 +277,17 @@ export function PetWindow() {
     [appWindow]
   );
 
-  const cycleAppearance = useCallback(() => {
-    setSelectedAppearanceId(getNextPetAppearanceId);
+  const chooseAppearance = useCallback((appearance: PetAppearanceId) => {
+    updateAppSettings({ appearance })
+      .then(setAppSettings)
+      .catch((error: unknown) => {
+        console.warn("Unable to update pet appearance.", error);
+      });
   }, []);
+
+  const cycleAppearance = useCallback(() => {
+    chooseAppearance(getNextPetAppearanceId(selectedAppearanceId));
+  }, [chooseAppearance, selectedAppearanceId]);
 
   return (
     <main className={shellClassName} aria-label={appearanceConfig.windowLabel}>
@@ -285,7 +318,7 @@ export function PetWindow() {
         title="点击切换桌宠形象"
         type="button"
       >
-        {moodConfig.label} · {appearanceConfig.label}
+        {appSettings.quietMode ? "安静模式" : moodConfig.label} · {appearanceConfig.label}
       </button>
       {isDebugPanelVisible ? (
         <section className="pet-debug-panel" aria-label="心情调试面板">
@@ -316,7 +349,7 @@ export function PetWindow() {
                   aria-pressed={item === selectedAppearanceId}
                   className="pet-appearance-button"
                   key={item}
-                  onClick={() => setSelectedAppearanceId(item)}
+                  onClick={() => chooseAppearance(item)}
                   type="button"
                 >
                   {itemConfig.label}
@@ -327,15 +360,33 @@ export function PetWindow() {
           <div className="pet-sensor-grid" aria-label="传感器数据">
             <div className="pet-sensor-item">
               <span>CPU</span>
-              <strong>{sensorSnapshot.cpuPercent}%</strong>
+              <strong>
+                {sensorSnapshot.cpuPercent === null
+                  ? appSettings.cpuDetectionEnabled && !appSettings.quietMode
+                    ? "不可用"
+                    : "已关闭"
+                  : `${sensorSnapshot.cpuPercent}%`}
+              </strong>
             </div>
             <div className="pet-sensor-item">
               <span>打字</span>
-              <strong>{sensorSnapshot.typingRate}/m</strong>
+              <strong>
+                {sensorSnapshot.typingRate === null
+                  ? appSettings.typingDetectionEnabled && !appSettings.quietMode
+                    ? "不可用"
+                    : "已关闭"
+                  : `${sensorSnapshot.typingRate}/m`}
+              </strong>
             </div>
             <div className="pet-sensor-item">
               <span>空闲</span>
-              <strong>{formatIdleSeconds(sensorSnapshot.idleSeconds)}</strong>
+              <strong>
+                {sensorSnapshot.idleSeconds === null
+                  ? appSettings.idleDetectionEnabled && !appSettings.quietMode
+                    ? "不可用"
+                    : "已关闭"
+                  : formatIdleSeconds(sensorSnapshot.idleSeconds)}
+              </strong>
             </div>
           </div>
           {petMoodOrder.map((item) => {

@@ -3,7 +3,7 @@ use std::fs;
 use std::path::Path;
 use std::time::UNIX_EPOCH;
 
-#[derive(Serialize)]
+#[derive(Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FeedingResult {
     file_name: String,
@@ -15,7 +15,7 @@ pub struct FeedingResult {
     message: &'static str,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 enum FeedingFlavor {
     Code,
@@ -117,4 +117,36 @@ fn image_extensions() -> &'static [&'static str] {
 
 fn archive_extensions() -> &'static [&'static str] {
     &["7z", "dmg", "gz", "rar", "tar", "tgz", "zip"]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn classifies_supported_file_types() {
+        let cases = [
+            ("main.rs", "rs", 100, FeedingFlavor::Code, "happy"),
+            ("pet.png", "png", 100, FeedingFlavor::Image, "happy"),
+            ("bundle.zip", "zip", 100, FeedingFlavor::Archive, "sad"),
+            ("notes.txt", "txt", 100, FeedingFlavor::Unknown, "sad"),
+        ];
+
+        for (file_name, extension, size, expected_flavor, expected_mood) in cases {
+            let result =
+                classify_feeding_result(file_name.to_string(), extension.to_string(), size, 0);
+
+            assert_eq!(result.flavor, expected_flavor);
+            assert_eq!(result.reaction_mood, expected_mood);
+        }
+    }
+
+    #[test]
+    fn large_file_takes_priority_over_extension() {
+        let result =
+            classify_feeding_result("huge.rs".to_string(), "rs".to_string(), 50 * 1024 * 1024, 0);
+
+        assert_eq!(result.flavor, FeedingFlavor::Large);
+        assert_eq!(result.reaction_mood, "sad");
+    }
 }

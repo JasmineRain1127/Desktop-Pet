@@ -6,6 +6,16 @@ import process from "node:process";
 const env = buildProjectEnv();
 const checks = [
   {
+    label: "version consistency",
+    command: "npm",
+    args: ["run", "version:check"]
+  },
+  {
+    label: "frontend tests",
+    command: "npm",
+    args: ["run", "test:run"]
+  },
+  {
     label: "frontend build",
     command: "npm",
     args: ["run", "build"]
@@ -20,6 +30,12 @@ const checks = [
     label: "cargo check",
     command: "cargo",
     args: ["check"],
+    cwd: "src-tauri"
+  },
+  {
+    label: "cargo test",
+    command: "cargo",
+    args: ["test"],
     cwd: "src-tauri"
   },
   {

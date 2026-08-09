@@ -142,6 +142,12 @@ body {
   animation: pet-sad 1.8s ease-in-out infinite;
 }
 
+.is-quiet:not(.is-eating):not(.is-happy):not(.is-sad) .pet-body,
+.is-quiet:not(.is-eating):not(.is-happy):not(.is-sad) .pet-sweat,
+.is-quiet:not(.is-eating):not(.is-happy):not(.is-sad) .pet-sleep-bubble {
+  animation: none;
+}
+
 .pet-ear {
   position: absolute;
   top: -12%;
@@ -624,6 +630,7 @@ body {
   align-content: start;
   gap: 14px;
   padding: 18px;
+  overflow-y: auto;
   background: #f7fbfa;
   color: #182024;
   user-select: none;
@@ -654,6 +661,29 @@ body {
 .settings-section {
   display: grid;
   gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(24, 32, 36, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.settings-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-section-heading h2 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.settings-section-heading span {
+  color: rgba(24, 32, 36, 0.58);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .settings-appearance-grid {
@@ -675,6 +705,11 @@ body {
   color: #182024;
   cursor: pointer;
   font: inherit;
+}
+
+.settings-appearance-card:disabled {
+  cursor: wait;
+  opacity: 0.68;
 }
 
 .settings-appearance-card:hover {
@@ -742,6 +777,108 @@ body {
   font-size: 22px;
   font-weight: 900;
   line-height: 1;
+}
+
+.settings-toggle-list {
+  display: grid;
+  gap: 2px;
+}
+
+.settings-toggle-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  min-height: 54px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(24, 32, 36, 0.1);
+  cursor: pointer;
+}
+
+.settings-toggle-row:first-child {
+  border-top: 0;
+}
+
+.settings-toggle-row > span {
+  display: grid;
+  gap: 4px;
+}
+
+.settings-toggle-row strong {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.settings-toggle-row small {
+  color: rgba(24, 32, 36, 0.62);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.settings-toggle-row input {
+  width: 38px;
+  height: 20px;
+  accent-color: #218d86;
+  cursor: pointer;
+}
+
+.settings-toggle-row input:disabled {
+  cursor: wait;
+}
+
+.settings-privacy p {
+  margin: 0;
+  color: rgba(24, 32, 36, 0.72);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.settings-reset-button {
+  justify-self: start;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid rgba(156, 51, 51, 0.48);
+  border-radius: 7px;
+  background: rgba(255, 245, 245, 0.86);
+  color: #8a2929;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.settings-reset-button:hover {
+  border-color: #8a2929;
+  background: #fff4f4;
+}
+
+.settings-reset-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.settings-error {
+  padding: 10px 12px;
+  border: 1px solid rgba(156, 51, 51, 0.48);
+  border-radius: 8px;
+  background: #fff1f1;
+  color: #8a2929;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.settings-warning {
+  padding: 10px 12px;
+  border: 1px solid rgba(172, 119, 22, 0.42);
+  border-radius: 8px;
+  background: #fff8df;
+  color: #76520f;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
 }
 
 @keyframes pet-breathe {

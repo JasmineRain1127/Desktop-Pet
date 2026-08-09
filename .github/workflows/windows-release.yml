@@ -1,20 +1,17 @@
-name: Windows Build
+name: Windows Release
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    tags:
+      - "v*"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  build-windows:
-    name: Build Windows desktop package
+  package-windows:
+    name: Package Windows release
     runs-on: windows-latest
 
     steps:
@@ -69,9 +66,6 @@ jobs:
       - name: Audit npm dependencies
         run: npm run security:audit
 
-      - name: Check Tauri CLI
-        run: npm run tauri -- --version
-
       - name: Read project version
         id: version
         shell: pwsh
@@ -79,10 +73,10 @@ jobs:
           $version = (Get-Content package.json | ConvertFrom-Json).version
           "version=$version" >> $env:GITHUB_OUTPUT
 
-      - name: Build Tauri Windows executable and NSIS installer
+      - name: Build NSIS installer
         run: npm run tauri -- build --bundles nsis
 
-      - name: Assemble release candidate
+      - name: Assemble release files
         shell: pwsh
         run: ./scripts/package-windows-release.ps1 -Version "${{ steps.version.outputs.version }}"
 
@@ -90,10 +84,34 @@ jobs:
         shell: pwsh
         run: ./scripts/test-windows-installer.ps1 -InstallerPath "release/Desktop-Pet_${{ steps.version.outputs.version }}_x64-setup.exe"
 
-      - name: Upload Windows release candidate
+      - name: Upload release candidate
         uses: actions/upload-artifact@v7
         with:
           name: desktop-pet-windows-${{ steps.version.outputs.version }}
           path: release/*
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish tagged GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $version = "${{ steps.version.outputs.version }}"
+          $releaseFiles = @(Get-ChildItem -LiteralPath "release" -File | Sort-Object Name | ForEach-Object FullName)
+          if ($releaseFiles.Count -ne 3) {
+            throw "Expected two executables and one checksum file, found $($releaseFiles.Count) release files."
+          }
+          $releaseArguments = @(
+            $env:GITHUB_REF_NAME
+          ) + $releaseFiles + @(
+            "--verify-tag",
+            "--title", "Desktop Pet $version",
+            "--generate-notes"
+          )
+          if ($version.Contains("-")) {
+            $releaseArguments += "--prerelease"
+          }
+          gh release create @releaseArguments

@@ -1,5 +1,6 @@
 mod feeding;
 mod sensors;
+mod settings;
 mod window_position;
 
 use std::sync::Mutex;
@@ -24,14 +25,24 @@ fn get_debug_panel_visible(state: tauri::State<'_, DebugPanelState>) -> bool {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
+    let builder = tauri::Builder::default().plugin(tauri_plugin_opener::init());
+    #[cfg(desktop)]
+    let builder = builder.plugin(tauri_plugin_autostart::init(
+        tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+        None,
+    ));
+
+    builder
         .manage(DebugPanelState {
             visible: Mutex::new(false),
         })
+        .manage(settings::AppSettingsState::default())
         .invoke_handler(tauri::generate_handler![
             feeding::feed_file_path,
             get_debug_panel_visible,
+            settings::get_app_settings,
+            settings::reset_app_data,
+            settings::update_app_settings,
             window_position::save_main_window_position
         ])
         .setup(|app| {
@@ -45,11 +56,19 @@ pub fn run() {
                 let hide_item = MenuItem::with_id(app, "hide", "隐藏小怪兽", true, None::<&str>)?;
                 let feed_item = MenuItem::with_id(app, "feed", "投喂", true, None::<&str>)?;
                 let settings_item = MenuItem::with_id(app, "settings", "设置", true, None::<&str>)?;
+                let quiet_item =
+                    MenuItem::with_id(app, "quiet", "切换安静模式", true, None::<&str>)?;
+                let click_through_item =
+                    MenuItem::with_id(app, "click_through", "切换鼠标穿透", true, None::<&str>)?;
                 let reset_position_item =
                     MenuItem::with_id(app, "reset_position", "重置位置", true, None::<&str>)?;
                 let debug_item =
                     MenuItem::with_id(app, "debug", "显示调试面板", true, None::<&str>)?;
                 let quit_item = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
+                app.manage(settings::SettingsMenuItems::new(
+                    quiet_item.clone(),
+                    click_through_item.clone(),
+                ));
                 let menu = Menu::with_items(
                     app,
                     &[
@@ -57,6 +76,8 @@ pub fn run() {
                         &hide_item,
                         &feed_item,
                         &settings_item,
+                        &quiet_item,
+                        &click_through_item,
                         &reset_position_item,
                         &debug_item,
                         &quit_item,
@@ -88,6 +109,16 @@ pub fn run() {
                         "settings" => {
                             if let Err(error) = show_settings_window(app) {
                                 eprintln!("Unable to show settings window: {error}");
+                            }
+                        }
+                        "quiet" => {
+                            if let Err(error) = settings::toggle_quiet_mode(app) {
+                                eprintln!("Unable to toggle quiet mode: {error}");
+                            }
+                        }
+                        "click_through" => {
+                            if let Err(error) = settings::toggle_click_through(app) {
+                                eprintln!("Unable to toggle click-through: {error}");
                             }
                         }
                         "reset_position" => {
@@ -139,6 +170,7 @@ pub fn run() {
                     });
                 }
 
+                settings::initialize(app.handle());
                 sensors::start_sensor_events(app.handle().clone());
             }
 
@@ -220,8 +252,9 @@ fn show_settings_window(app: &tauri::AppHandle) -> tauri::Result<()> {
 
     let window = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
         .title("小怪兽设置")
-        .inner_size(360.0, 300.0)
-        .resizable(false)
+        .inner_size(440.0, 620.0)
+        .min_inner_size(400.0, 520.0)
+        .resizable(true)
         .center()
         .build()?;
 
