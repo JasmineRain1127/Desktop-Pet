@@ -71,6 +71,25 @@ if (-not (Test-Path -LiteralPath $startMenuShortcut -PathType Leaf)) {
   throw "Start menu shortcut was not created: $startMenuShortcut"
 }
 
+Write-Host "Launching the installed app for a short startup smoke test."
+$appProcess = Start-Process -FilePath $mainExecutable -PassThru
+try {
+  Start-Sleep -Seconds 5
+  $appProcess.Refresh()
+
+  if ($appProcess.HasExited) {
+    throw "Installed app exited during startup with code $($appProcess.ExitCode)."
+  }
+} finally {
+  $appProcess.Refresh()
+  if (-not $appProcess.HasExited) {
+    Stop-Process -Id $appProcess.Id -ErrorAction Stop
+    if (-not $appProcess.WaitForExit(10_000)) {
+      throw "Installed app did not stop within ten seconds."
+    }
+  }
+}
+
 Write-Host "Silently uninstalling the isolated installation."
 $uninstallProcess = Start-Process -FilePath $uninstaller -ArgumentList "/S" -Wait -PassThru
 if ($uninstallProcess.ExitCode -ne 0) {
