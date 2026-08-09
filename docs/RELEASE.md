@@ -52,6 +52,8 @@ src-tauri/target/release/desktop-pet.exe
 
 ## 本机冒烟测试
 
+正式进入两轮试用时，使用 [`docs/ALPHA_TEST.md`](ALPHA_TEST.md) 记录环境、完整清单和问题等级。下面是每个候选包都必须先通过的最小冒烟测试。
+
 把 `desktop-pet.exe` 放到一台真实 Windows 10/11 机器上测试：
 
 - 双击能启动
