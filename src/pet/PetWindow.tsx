@@ -15,8 +15,9 @@ import {
 import { petMoodConfigs, petMoodOrder, type PetMood } from "./petMood";
 import {
   AUTOMATIC_MOOD_TRANSITION_DELAY_MS,
-  deriveMoodFromSensors,
+  advanceAutomaticMoodState,
   formatIdleSeconds,
+  initialAutomaticMoodState,
   initialSensorSnapshot,
   shouldDelayAutomaticMoodChange,
   type PetSensorSnapshot
@@ -43,7 +44,10 @@ export function PetWindow() {
   const [sensorSnapshot, setSensorSnapshot] = useState<PetSensorSnapshot>(
     initialSensorSnapshot
   );
-  const automaticMood = deriveMoodFromSensors(sensorSnapshot);
+  const [automaticMoodState, setAutomaticMoodState] = useState(
+    initialAutomaticMoodState
+  );
+  const automaticMood = automaticMoodState.mood;
   const [displayedAutomaticMood, setDisplayedAutomaticMood] =
     useState<PetMood>(automaticMood);
   const activeMood =
@@ -90,14 +94,19 @@ export function PetWindow() {
   }, []);
 
   useEffect(() => {
-    return listenToSensorSnapshots(setSensorSnapshot);
+    return listenToSensorSnapshots((snapshot) => {
+      setSensorSnapshot(snapshot);
+      setAutomaticMoodState((current) =>
+        advanceAutomaticMoodState(current, snapshot, Date.now())
+      );
+    });
   }, []);
 
   useEffect(() => {
     let disposed = false;
 
     initializeAppSettings()
-      .then((settings) => {
+      .then(({ settings }) => {
         if (!disposed) {
           setAppSettings(settings);
         }

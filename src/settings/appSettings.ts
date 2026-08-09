@@ -27,6 +27,12 @@ export type AppSettingsPatch = Partial<Omit<AppSettings, "schemaVersion">>;
 type AppSettingsEnvelope = {
   settings: AppSettings;
   persisted: boolean;
+  warning: string | null;
+};
+
+export type AppSettingsInitialization = {
+  settings: AppSettings;
+  warning: string | null;
 };
 
 export const defaultAppSettings: AppSettings = {
@@ -42,22 +48,26 @@ export const defaultAppSettings: AppSettings = {
 
 let browserSettings: AppSettings | undefined;
 
-export async function initializeAppSettings(): Promise<AppSettings> {
+export async function initializeAppSettings(): Promise<AppSettingsInitialization> {
   if (!isTauri()) {
-    return getBrowserSettings();
+    return { settings: getBrowserSettings(), warning: null };
   }
 
   const envelope = await invoke<AppSettingsEnvelope>("get_app_settings");
 
   if (envelope.persisted) {
     clearLegacyAppearance();
-    return envelope.settings;
+    return { settings: envelope.settings, warning: envelope.warning };
+  }
+
+  if (envelope.warning) {
+    return { settings: envelope.settings, warning: envelope.warning };
   }
 
   const legacyAppearance = readStoredAppearanceId();
   const settings = await updateAppSettings({ appearance: legacyAppearance });
   clearLegacyAppearance();
-  return settings;
+  return { settings, warning: null };
 }
 
 export async function updateAppSettings(

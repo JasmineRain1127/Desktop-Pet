@@ -10,7 +10,7 @@ use crate::window_position;
 const SETTINGS_FILE_NAME: &str = "app-settings.json";
 pub const SETTINGS_CHANGED_EVENT: &str = "app_settings_changed";
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum PetAppearance {
     #[default]
@@ -64,11 +64,13 @@ pub struct AppSettingsPatch {
 pub struct AppSettingsEnvelope {
     settings: AppSettings,
     persisted: bool,
+    warning: Option<String>,
 }
 
 pub struct AppSettingsState {
     settings: Mutex<AppSettings>,
     persisted: Mutex<bool>,
+    warning: Mutex<Option<String>>,
 }
 
 #[cfg(desktop)]
@@ -95,6 +97,7 @@ impl Default for AppSettingsState {
         Self {
             settings: Mutex::new(AppSettings::default()),
             persisted: Mutex::new(false),
+            warning: Mutex::new(None),
         }
     }
 }
@@ -109,12 +112,16 @@ pub fn initialize(app: &AppHandle) {
         }
     };
 
-    let (mut settings, persisted) = match read_settings_file(&path) {
-        Ok(Some(settings)) => (settings, true),
-        Ok(None) => (AppSettings::default(), false),
+    let (mut settings, persisted, warning) = match read_settings_file(&path) {
+        Ok(Some(settings)) => (settings, true, None),
+        Ok(None) => (AppSettings::default(), false, None),
         Err(error) => {
             eprintln!("Unable to read app settings: {error}");
-            (AppSettings::default(), false)
+            (
+                AppSettings::default(),
+                false,
+                Some("本机设置文件无效，已临时使用默认设置；保存任意设置即可修复。".to_string()),
+            )
         }
     };
 
@@ -134,6 +141,9 @@ pub fn initialize(app: &AppHandle) {
     }
     if let Ok(mut is_persisted) = state.persisted.lock() {
         *is_persisted = persisted;
+    }
+    if let Ok(mut current_warning) = state.warning.lock() {
+        *current_warning = warning;
     }
 
     if let Err(error) = apply_click_through(app, settings.click_through_enabled) {
@@ -163,10 +173,16 @@ pub fn get_app_settings(app: AppHandle) -> AppSettingsEnvelope {
         .lock()
         .map(|persisted| *persisted)
         .unwrap_or(false);
+    let warning = state
+        .warning
+        .lock()
+        .map(|warning| warning.clone())
+        .unwrap_or(None);
 
     AppSettingsEnvelope {
         settings,
         persisted,
+        warning,
     }
 }
 
@@ -188,6 +204,7 @@ pub fn reset_app_data(app: AppHandle) -> Result<AppSettings, String> {
 
     persist_settings(&app, &defaults)?;
     set_current_settings(&app, defaults.clone(), true);
+    set_warning(&app, None);
     window_position::reset_main_window_position(&app)
         .map_err(|error| format!("无法重置窗口位置：{error}"))?;
     sync_menu_labels(&app, &defaults);
@@ -220,30 +237,7 @@ pub fn toggle_click_through(app: &AppHandle) -> Result<AppSettings, String> {
 
 fn update_settings(app: &AppHandle, patch: AppSettingsPatch) -> Result<AppSettings, String> {
     let current = current_settings(app);
-    let mut next = current.clone();
-
-    if let Some(value) = patch.appearance {
-        next.appearance = value;
-    }
-    if let Some(value) = patch.quiet_mode {
-        next.quiet_mode = value;
-    }
-    if let Some(value) = patch.cpu_detection_enabled {
-        next.cpu_detection_enabled = value;
-    }
-    if let Some(value) = patch.idle_detection_enabled {
-        next.idle_detection_enabled = value;
-    }
-    if let Some(value) = patch.typing_detection_enabled {
-        next.typing_detection_enabled = value;
-    }
-    if let Some(value) = patch.click_through_enabled {
-        next.click_through_enabled = value;
-    }
-    if let Some(value) = patch.launch_at_startup {
-        next.launch_at_startup = value;
-    }
-    next.schema_version = 1;
+    let next = apply_settings_patch(&current, patch);
 
     if next.launch_at_startup != current.launch_at_startup {
         apply_autostart(app, next.launch_at_startup)?;
@@ -269,10 +263,40 @@ fn update_settings(app: &AppHandle, patch: AppSettingsPatch) -> Result<AppSettin
     }
 
     set_current_settings(app, next.clone(), true);
+    set_warning(app, None);
     sync_menu_labels(app, &next);
     emit_settings(app, &next);
 
     Ok(next)
+}
+
+fn apply_settings_patch(current: &AppSettings, patch: AppSettingsPatch) -> AppSettings {
+    let mut next = current.clone();
+
+    if let Some(value) = patch.appearance {
+        next.appearance = value;
+    }
+    if let Some(value) = patch.quiet_mode {
+        next.quiet_mode = value;
+    }
+    if let Some(value) = patch.cpu_detection_enabled {
+        next.cpu_detection_enabled = value;
+    }
+    if let Some(value) = patch.idle_detection_enabled {
+        next.idle_detection_enabled = value;
+    }
+    if let Some(value) = patch.typing_detection_enabled {
+        next.typing_detection_enabled = value;
+    }
+    if let Some(value) = patch.click_through_enabled {
+        next.click_through_enabled = value;
+    }
+    if let Some(value) = patch.launch_at_startup {
+        next.launch_at_startup = value;
+    }
+    next.schema_version = 1;
+
+    next
 }
 
 fn set_current_settings(app: &AppHandle, settings: AppSettings, persisted: bool) {
@@ -283,6 +307,14 @@ fn set_current_settings(app: &AppHandle, settings: AppSettings, persisted: bool)
     }
     if let Ok(mut is_persisted) = state.persisted.lock() {
         *is_persisted = persisted;
+    };
+}
+
+fn set_warning(app: &AppHandle, warning: Option<String>) {
+    let state = app.state::<AppSettingsState>();
+
+    if let Ok(mut current_warning) = state.warning.lock() {
+        *current_warning = warning;
     };
 }
 
@@ -370,4 +402,62 @@ fn apply_autostart(app: &AppHandle, enabled: bool) -> Result<(), String> {
 #[cfg(not(desktop))]
 fn apply_autostart(_app: &AppHandle, _enabled: bool) -> Result<(), String> {
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn defaults_are_privacy_explicit_and_versioned() {
+        let settings = AppSettings::default();
+
+        assert_eq!(settings.schema_version, 1);
+        assert_eq!(settings.appearance, PetAppearance::Monster);
+        assert!(!settings.quiet_mode);
+        assert!(settings.cpu_detection_enabled);
+        assert!(settings.idle_detection_enabled);
+        assert!(settings.typing_detection_enabled);
+        assert!(!settings.click_through_enabled);
+        assert!(!settings.launch_at_startup);
+    }
+
+    #[test]
+    fn old_partial_json_receives_current_defaults() {
+        let settings: AppSettings = serde_json::from_str(r#"{"appearance":"cat"}"#).unwrap();
+
+        assert_eq!(settings.schema_version, 1);
+        assert_eq!(settings.appearance, PetAppearance::Cat);
+        assert!(settings.cpu_detection_enabled);
+        assert!(settings.idle_detection_enabled);
+        assert!(settings.typing_detection_enabled);
+    }
+
+    #[test]
+    fn patch_only_changes_supplied_fields_and_normalizes_version() {
+        let current = AppSettings {
+            schema_version: 99,
+            appearance: PetAppearance::Dog,
+            quiet_mode: false,
+            cpu_detection_enabled: false,
+            ..AppSettings::default()
+        };
+        let patch: AppSettingsPatch =
+            serde_json::from_str(r#"{"quietMode":true,"clickThroughEnabled":true}"#).unwrap();
+
+        let next = apply_settings_patch(&current, patch);
+
+        assert_eq!(next.schema_version, 1);
+        assert_eq!(next.appearance, PetAppearance::Dog);
+        assert!(next.quiet_mode);
+        assert!(!next.cpu_detection_enabled);
+        assert!(next.click_through_enabled);
+    }
+
+    #[test]
+    fn patch_rejects_unknown_fields() {
+        let result = serde_json::from_str::<AppSettingsPatch>(r#"{"surprise":true}"#);
+
+        assert!(result.is_err());
+    }
 }

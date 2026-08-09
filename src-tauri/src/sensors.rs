@@ -212,3 +212,19 @@ fn platform_typing_rate(_sampler: &mut TypingSampler) -> Option<u16> {
 fn per_minute_rate(key_delta_per_second: u64) -> u16 {
     key_delta_per_second.saturating_mul(60).min(u16::MAX as u64) as u16
 }
+
+#[cfg(test)]
+mod tests {
+    use super::per_minute_rate;
+
+    #[test]
+    fn converts_one_second_sample_to_per_minute_rate() {
+        assert_eq!(per_minute_rate(0), 0);
+        assert_eq!(per_minute_rate(2), 120);
+    }
+
+    #[test]
+    fn saturates_large_rates() {
+        assert_eq!(per_minute_rate(u64::MAX), u16::MAX);
+    }
+}

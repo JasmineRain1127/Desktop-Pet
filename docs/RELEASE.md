@@ -14,11 +14,10 @@
 在本地确认源码没有明显问题：
 
 ```bash
-/opt/homebrew/bin/fnm exec npm run build
-/Users/jasmine/.cargo/bin/cargo fmt --check
-/Users/jasmine/.cargo/bin/cargo check
-/Users/jasmine/.cargo/bin/cargo clippy -- -D warnings
+/opt/homebrew/bin/fnm exec npm run check
 ```
+
+该命令会运行前端测试与构建，以及 Rust 格式检查、编译检查、单元测试和 Clippy。
 
 如果改过 Tauri、Rust 或窗口行为，建议再跑一次无安装包构建：
 

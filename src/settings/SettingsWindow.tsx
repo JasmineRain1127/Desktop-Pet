@@ -17,15 +17,17 @@ import {
 export function SettingsWindow() {
   const [settings, setSettings] = useState<AppSettings>(defaultAppSettings);
   const [errorMessage, setErrorMessage] = useState("");
+  const [warningMessage, setWarningMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     let disposed = false;
 
     initializeAppSettings()
-      .then((nextSettings) => {
+      .then(({ settings: nextSettings, warning }) => {
         if (!disposed) {
           setSettings(nextSettings);
+          setWarningMessage(warning ?? "");
         }
       })
       .catch((error: unknown) => {
@@ -53,6 +55,7 @@ export function SettingsWindow() {
 
     try {
       setSettings(await updateAppSettings(patch));
+      setWarningMessage("");
     } catch (error: unknown) {
       setErrorMessage(formatError(error));
     } finally {
@@ -74,6 +77,7 @@ export function SettingsWindow() {
 
     try {
       setSettings(await resetAppData());
+      setWarningMessage("");
     } catch (error: unknown) {
       setErrorMessage(formatError(error));
     } finally {
@@ -91,6 +95,12 @@ export function SettingsWindow() {
       {errorMessage ? (
         <div className="settings-error" role="alert">
           {errorMessage}
+        </div>
+      ) : null}
+
+      {warningMessage ? (
+        <div className="settings-warning" role="status">
+          {warningMessage}
         </div>
       ) : null}
 

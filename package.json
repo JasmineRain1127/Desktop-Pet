@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "check": "node scripts/check.mjs",
+    "test": "vitest",
+    "test:run": "vitest run",
     "preview": "vite preview",
     "tauri": "node scripts/run-with-project-env.mjs tauri"
   },
@@ -21,6 +23,7 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.2",
     "typescript": "5.9.3",
-    "vite": "7.3.3"
+    "vite": "7.3.3",
+    "vitest": "4.1.10"
   }
 }

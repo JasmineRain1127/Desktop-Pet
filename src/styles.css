@@ -870,6 +870,17 @@ body {
   line-height: 1.4;
 }
 
+.settings-warning {
+  padding: 10px 12px;
+  border: 1px solid rgba(172, 119, 22, 0.42);
+  border-radius: 8px;
+  background: #fff8df;
+  color: #76520f;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
 @keyframes pet-breathe {
   0%,
   100% {

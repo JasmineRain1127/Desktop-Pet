@@ -18,6 +18,7 @@ const petSensorMoodThresholds = {
 } as const;
 
 export const AUTOMATIC_MOOD_TRANSITION_DELAY_MS = 450;
+export const OVERHEATED_SUSTAIN_DURATION_MS = 10_000;
 
 const immediateAutomaticMoodTargets = new Set<PetMood>([
   "overheated",
@@ -37,7 +38,20 @@ export const initialSensorSnapshot: PetSensorSnapshot = {
   idleSeconds: null
 };
 
-export function deriveMoodFromSensors(snapshot: PetSensorSnapshot): PetMood {
+export type AutomaticMoodState = {
+  mood: PetMood;
+  overheatStartedAtMs: number | null;
+};
+
+export const initialAutomaticMoodState: AutomaticMoodState = {
+  mood: "idle",
+  overheatStartedAtMs: null
+};
+
+export function deriveMoodFromSensors(
+  snapshot: PetSensorSnapshot,
+  allowOverheated = true
+): PetMood {
   if (
     snapshot.idleSeconds !== null &&
     snapshot.idleSeconds >= petSensorMoodThresholds.idle.sleepingSeconds
@@ -53,10 +67,11 @@ export function deriveMoodFromSensors(snapshot: PetSensorSnapshot): PetMood {
   }
 
   if (
-    (snapshot.cpuPercent !== null &&
+    allowOverheated &&
+    ((snapshot.cpuPercent !== null &&
       snapshot.cpuPercent >= petSensorMoodThresholds.cpu.overheated) ||
-    (snapshot.typingRate !== null &&
-      snapshot.typingRate >= petSensorMoodThresholds.typing.overheated)
+      (snapshot.typingRate !== null &&
+        snapshot.typingRate >= petSensorMoodThresholds.typing.overheated))
   ) {
     return "overheated";
   }
@@ -80,6 +95,46 @@ export function deriveMoodFromSensors(snapshot: PetSensorSnapshot): PetMood {
   }
 
   return "idle";
+}
+
+export function advanceAutomaticMoodState(
+  current: AutomaticMoodState,
+  snapshot: PetSensorSnapshot,
+  nowMs: number
+): AutomaticMoodState {
+  const moodWithoutOverheat = deriveMoodFromSensors(snapshot, false);
+
+  if (moodWithoutOverheat === "sleepy" || moodWithoutOverheat === "sleeping") {
+    return {
+      mood: moodWithoutOverheat,
+      overheatStartedAtMs: null
+    };
+  }
+
+  if (!hasOverheatSignal(snapshot)) {
+    return {
+      mood: moodWithoutOverheat,
+      overheatStartedAtMs: null
+    };
+  }
+
+  const overheatStartedAtMs = current.overheatStartedAtMs ?? nowMs;
+  const hasSustainedOverheat =
+    nowMs - overheatStartedAtMs >= OVERHEATED_SUSTAIN_DURATION_MS;
+
+  return {
+    mood: deriveMoodFromSensors(snapshot, hasSustainedOverheat),
+    overheatStartedAtMs
+  };
+}
+
+function hasOverheatSignal(snapshot: PetSensorSnapshot) {
+  return (
+    (snapshot.cpuPercent !== null &&
+      snapshot.cpuPercent >= petSensorMoodThresholds.cpu.overheated) ||
+    (snapshot.typingRate !== null &&
+      snapshot.typingRate >= petSensorMoodThresholds.typing.overheated)
+  );
 }
 
 export function shouldDelayAutomaticMoodChange(
