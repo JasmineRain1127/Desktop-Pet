@@ -157,8 +157,6 @@ fn finite_seconds_to_u16(seconds: f64) -> Option<u16> {
 struct TypingSampler {
     #[cfg(target_os = "macos")]
     previous_key_count: Option<u64>,
-    #[cfg(target_os = "windows")]
-    previous_pressed_keys: [bool; 256],
 }
 
 impl TypingSampler {
@@ -166,8 +164,6 @@ impl TypingSampler {
         Self {
             #[cfg(target_os = "macos")]
             previous_key_count: None,
-            #[cfg(target_os = "windows")]
-            previous_pressed_keys: [false; 256],
         }
     }
 
@@ -200,24 +196,39 @@ fn platform_typing_rate(sampler: &mut TypingSampler) -> Option<u16> {
 }
 
 #[cfg(target_os = "windows")]
-fn platform_typing_rate(sampler: &mut TypingSampler) -> Option<u16> {
+fn platform_typing_rate(_sampler: &mut TypingSampler) -> Option<u16> {
     use windows::Win32::UI::Input::KeyboardAndMouse::GetAsyncKeyState;
 
     let mut key_delta = 0_u16;
 
-    for virtual_key in 0_u16..=255 {
+    for virtual_key in typing_virtual_keys() {
         let key_state = unsafe { GetAsyncKeyState(virtual_key as i32) };
-        let is_pressed = (key_state as u16 & 0x8000) != 0;
-        let was_pressed = sampler.previous_pressed_keys[virtual_key as usize];
+        let was_pressed_since_last_sample = (key_state as u16 & 0x0001) != 0;
 
-        if is_pressed && !was_pressed {
+        if was_pressed_since_last_sample {
             key_delta = key_delta.saturating_add(1);
         }
-
-        sampler.previous_pressed_keys[virtual_key as usize] = is_pressed;
     }
 
     Some(per_minute_rate(key_delta as u64))
+}
+
+#[cfg(target_os = "windows")]
+fn typing_virtual_keys() -> impl Iterator<Item = u16> {
+    const EDITING_KEYS: [u16; 5] = [0x08, 0x09, 0x0D, 0x1B, 0x20];
+    const NUMBER_KEYS: std::ops::RangeInclusive<u16> = 0x30..=0x39;
+    const LETTER_KEYS: std::ops::RangeInclusive<u16> = 0x41..=0x5A;
+    const NUMPAD_KEYS: std::ops::RangeInclusive<u16> = 0x60..=0x6F;
+    const PUNCTUATION_KEYS_1: std::ops::RangeInclusive<u16> = 0xBA..=0xC0;
+    const PUNCTUATION_KEYS_2: std::ops::RangeInclusive<u16> = 0xDB..=0xDE;
+
+    EDITING_KEYS
+        .into_iter()
+        .chain(NUMBER_KEYS)
+        .chain(LETTER_KEYS)
+        .chain(NUMPAD_KEYS)
+        .chain(PUNCTUATION_KEYS_1)
+        .chain(PUNCTUATION_KEYS_2)
 }
 
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]

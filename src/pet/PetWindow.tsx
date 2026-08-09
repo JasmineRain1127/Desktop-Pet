@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, isTauri } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
@@ -6,11 +6,23 @@ import {
   FEEDING_RESULT_EVENT,
   type FeedingResult
 } from "../feeding/petFeeding";
+import {
+  getNextPetAppearanceId,
+  isPetAppearanceId,
+  PET_APPEARANCE_STORAGE_KEY,
+  petAppearanceConfigs,
+  petAppearanceOrder,
+  readStoredAppearanceId,
+  saveStoredAppearanceId,
+  type PetAppearanceId
+} from "./petAppearance";
 import { petMoodConfigs, petMoodOrder, type PetMood } from "./petMood";
 import {
+  AUTOMATIC_MOOD_TRANSITION_DELAY_MS,
   deriveMoodFromSensors,
   formatIdleSeconds,
   initialSensorSnapshot,
+  shouldDelayAutomaticMoodChange,
   type PetSensorSnapshot
 } from "./petSimulation";
 import { listenToSensorSnapshots } from "./petSensorBridge";
@@ -22,20 +34,28 @@ const POSITION_SAVE_DELAY_MS = 350;
 export function PetWindow() {
   const [isDebugPanelVisible, setIsDebugPanelVisible] = useState(false);
   const [debugMode, setDebugMode] = useState<DebugMode>("auto");
+  const [selectedAppearanceId, setSelectedAppearanceId] =
+    useState<PetAppearanceId>(readStoredAppearanceId);
   const [manualMood, setManualMood] = useState<PetMood>("idle");
   const [feedingMood, setFeedingMood] = useState<PetMood | null>(null);
   const [sensorSnapshot, setSensorSnapshot] = useState<PetSensorSnapshot>(
     initialSensorSnapshot
   );
   const automaticMood = deriveMoodFromSensors(sensorSnapshot);
+  const [displayedAutomaticMood, setDisplayedAutomaticMood] =
+    useState<PetMood>(automaticMood);
   const activeMood =
-    feedingMood ?? (debugMode === "auto" ? automaticMood : manualMood);
+    feedingMood ?? (debugMode === "auto" ? displayedAutomaticMood : manualMood);
   const moodConfig = petMoodConfigs[activeMood];
-  const appWindow = useMemo(() => getCurrentWindow(), []);
+  const appearanceConfig = petAppearanceConfigs[selectedAppearanceId];
+  const face = appearanceConfig.faces?.[activeMood] ?? moodConfig.face;
+  const appWindow = useMemo(() => (isTauri() ? getCurrentWindow() : null), []);
   const shellClassName = useMemo(
     () =>
-      `pet-shell ${isDebugPanelVisible ? "has-debug-panel" : "is-compact"} ${moodConfig.className}`,
-    [isDebugPanelVisible, moodConfig.className]
+      `pet-shell ${appearanceConfig.shellClassName} ${
+        isDebugPanelVisible ? "has-debug-panel" : "is-compact"
+      } ${moodConfig.className}`,
+    [appearanceConfig.shellClassName, isDebugPanelVisible, moodConfig.className]
   );
 
   useEffect(() => {
@@ -59,6 +79,25 @@ export function PetWindow() {
   useEffect(() => {
     return listenToSensorSnapshots(setSensorSnapshot);
   }, []);
+
+  useEffect(() => {
+    if (automaticMood === displayedAutomaticMood) {
+      return;
+    }
+
+    if (!shouldDelayAutomaticMoodChange(displayedAutomaticMood, automaticMood)) {
+      setDisplayedAutomaticMood(automaticMood);
+      return;
+    }
+
+    const transitionTimer = window.setTimeout(() => {
+      setDisplayedAutomaticMood(automaticMood);
+    }, AUTOMATIC_MOOD_TRANSITION_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(transitionTimer);
+    };
+  }, [automaticMood, displayedAutomaticMood]);
 
   useEffect(() => {
     let disposed = false;
@@ -92,6 +131,32 @@ export function PetWindow() {
   }, [isDebugPanelVisible]);
 
   useEffect(() => {
+    saveStoredAppearanceId(selectedAppearanceId);
+  }, [selectedAppearanceId]);
+
+  useEffect(() => {
+    function updateStoredAppearance(event: StorageEvent) {
+      if (
+        event.key === PET_APPEARANCE_STORAGE_KEY &&
+        event.newValue &&
+        isPetAppearanceId(event.newValue)
+      ) {
+        setSelectedAppearanceId(event.newValue);
+      }
+    }
+
+    window.addEventListener("storage", updateStoredAppearance);
+
+    return () => {
+      window.removeEventListener("storage", updateStoredAppearance);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!appWindow) {
+      return;
+    }
+
     let disposed = false;
     let unlisten: UnlistenFn | undefined;
     let saveTimer: number | undefined;
@@ -170,6 +235,10 @@ export function PetWindow() {
 
   const startWindowDrag = useCallback(
     (event: MouseEvent<HTMLElement>) => {
+      if (!appWindow) {
+        return;
+      }
+
       if (event.button !== 0) {
         return;
       }
@@ -183,13 +252,17 @@ export function PetWindow() {
     [appWindow]
   );
 
+  const cycleAppearance = useCallback(() => {
+    setSelectedAppearanceId(getNextPetAppearanceId);
+  }, []);
+
   return (
-    <main className={shellClassName} aria-label="桌面小怪兽">
+    <main className={shellClassName} aria-label={appearanceConfig.windowLabel}>
       <section
         className="pet-stage"
         data-tauri-drag-region
         onMouseDown={startWindowDrag}
-        aria-label="拖动小怪兽"
+        aria-label={appearanceConfig.dragLabel}
       >
         <div className="pet-shadow" data-tauri-drag-region />
         <div className="pet-body" data-tauri-drag-region>
@@ -201,11 +274,19 @@ export function PetWindow() {
             Z
           </div>
           <div className="pet-face" data-tauri-drag-region>
-            {moodConfig.face}
+            {face}
           </div>
         </div>
       </section>
-      <div className="pet-status">{moodConfig.label}</div>
+      <button
+        aria-label={`切换桌宠形象，当前是${appearanceConfig.label}`}
+        className="pet-status pet-appearance-cycle"
+        onClick={cycleAppearance}
+        title="点击切换桌宠形象"
+        type="button"
+      >
+        {moodConfig.label} · {appearanceConfig.label}
+      </button>
       {isDebugPanelVisible ? (
         <section className="pet-debug-panel" aria-label="心情调试面板">
           <div className="pet-mode-toggle" aria-label="心情控制模式">
@@ -225,6 +306,23 @@ export function PetWindow() {
             >
               手动模式
             </button>
+          </div>
+          <div className="pet-appearance-toggle" aria-label="形象选择">
+            {petAppearanceOrder.map((item) => {
+              const itemConfig = petAppearanceConfigs[item];
+
+              return (
+                <button
+                  aria-pressed={item === selectedAppearanceId}
+                  className="pet-appearance-button"
+                  key={item}
+                  onClick={() => setSelectedAppearanceId(item)}
+                  type="button"
+                >
+                  {itemConfig.label}
+                </button>
+              );
+            })}
           </div>
           <div className="pet-sensor-grid" aria-label="传感器数据">
             <div className="pet-sensor-item">

@@ -75,6 +75,20 @@ body {
   animation: pet-breathe 2.7s ease-in-out infinite;
 }
 
+.is-appearance-cat .pet-body {
+  border-radius: 46% 46% 40% 40%;
+  background:
+    radial-gradient(circle at 34% 27%, rgba(255, 255, 255, 0.78), transparent 20%),
+    linear-gradient(145deg, #ffd7a8 0%, #f6a86f 58%, #d47452 100%);
+}
+
+.is-appearance-dog .pet-body {
+  border-radius: 48% 48% 44% 44%;
+  background:
+    radial-gradient(circle at 34% 27%, rgba(255, 255, 255, 0.76), transparent 20%),
+    linear-gradient(145deg, #f0d3a2 0%, #d49a62 58%, #9b6542 100%);
+}
+
 .is-focused .pet-body {
   animation: pet-focused 1.7s ease-in-out infinite;
 }
@@ -138,6 +152,21 @@ body {
   background: #65d9bd;
 }
 
+.is-appearance-cat .pet-ear {
+  top: -15%;
+  width: 27%;
+  border-radius: 26% 72% 24% 72%;
+  background: #f6a86f;
+}
+
+.is-appearance-dog .pet-ear {
+  top: 2%;
+  width: 24%;
+  aspect-ratio: 0.62;
+  border-radius: 60% 48% 58% 48%;
+  background: #9b6542;
+}
+
 .is-stressed .pet-ear,
 .is-overheated .pet-ear,
 .is-happy .pet-ear {
@@ -166,6 +195,26 @@ body {
   rotate: 108deg;
 }
 
+.is-appearance-cat .pet-ear-left {
+  left: 16%;
+  rotate: -30deg;
+}
+
+.is-appearance-cat .pet-ear-right {
+  right: 16%;
+  rotate: 120deg;
+}
+
+.is-appearance-dog .pet-ear-left {
+  left: 5%;
+  rotate: 12deg;
+}
+
+.is-appearance-dog .pet-ear-right {
+  right: 5%;
+  rotate: -12deg;
+}
+
 .pet-face {
   position: relative;
   z-index: 1;
@@ -177,6 +226,15 @@ body {
   pointer-events: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+.is-appearance-cat .pet-face {
+  font-size: clamp(1.25rem, 10vw, 2.2rem);
+}
+
+.is-appearance-dog .pet-face {
+  padding-top: 10%;
+  font-size: clamp(1.2rem, 9.5vw, 2.1rem);
 }
 
 .pet-sweat {
@@ -270,11 +328,34 @@ body {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
   color: #182024;
+  cursor: default;
+  font: inherit;
   font-size: 13px;
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
   backdrop-filter: blur(10px);
+  transition:
+    background 140ms ease,
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.pet-appearance-cycle {
+  cursor: pointer;
+}
+
+.pet-appearance-cycle:hover {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 14px rgba(7, 33, 38, 0.12);
+  transform: translateY(-1px);
+}
+
+.pet-appearance-cycle:focus-visible {
+  outline: 2px solid #182024;
+  outline-offset: 2px;
+  box-shadow: 0 6px 14px rgba(7, 33, 38, 0.12);
+  transform: translateY(-1px);
 }
 
 .pet-debug-panel {
@@ -298,6 +379,13 @@ body {
   width: 100%;
 }
 
+.pet-appearance-toggle {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  width: 100%;
+}
+
 .pet-mode-button {
   min-height: 26px;
   border: 1px solid rgba(24, 32, 36, 0.36);
@@ -311,7 +399,30 @@ body {
   cursor: pointer;
 }
 
+.pet-appearance-button {
+  min-height: 26px;
+  border: 1px solid rgba(24, 32, 36, 0.32);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.56);
+  color: #182024;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pet-appearance-button:hover {
+  background: rgba(255, 255, 255, 0.86);
+}
+
 .pet-mode-button[aria-pressed="true"] {
+  border-color: #182024;
+  background: #182024;
+  color: #ffffff;
+}
+
+.pet-appearance-button[aria-pressed="true"] {
   border-color: #182024;
   background: #182024;
   color: #ffffff;
@@ -506,6 +617,133 @@ body {
   line-height: 1.1;
 }
 
+.settings-shell {
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  align-content: start;
+  gap: 14px;
+  padding: 18px;
+  background: #f7fbfa;
+  color: #182024;
+  user-select: none;
+}
+
+.settings-header {
+  display: grid;
+  gap: 4px;
+}
+
+.settings-header h1,
+.settings-header p {
+  margin: 0;
+}
+
+.settings-header h1 {
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.settings-header p {
+  color: rgba(24, 32, 36, 0.68);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.settings-section {
+  display: grid;
+  gap: 10px;
+}
+
+.settings-appearance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.settings-appearance-card {
+  display: grid;
+  min-height: 144px;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border: 2px solid rgba(24, 32, 36, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.74);
+  color: #182024;
+  cursor: pointer;
+  font: inherit;
+}
+
+.settings-appearance-card:hover {
+  border-color: rgba(24, 32, 36, 0.58);
+  background: #ffffff;
+}
+
+.settings-appearance-card:focus-visible {
+  outline: 2px solid #182024;
+  outline-offset: 2px;
+}
+
+.settings-appearance-card[aria-pressed="true"] {
+  border-color: #182024;
+  box-shadow: inset 0 0 0 1px #182024;
+}
+
+.settings-appearance-card strong {
+  font-size: 13px;
+  line-height: 1.1;
+}
+
+.settings-appearance-state {
+  min-height: 14px;
+  color: rgba(24, 32, 36, 0.62);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.settings-appearance-card[aria-pressed="true"] .settings-appearance-state {
+  color: #182024;
+}
+
+.settings-appearance-preview {
+  position: relative;
+  display: grid;
+  width: 56px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 3px solid #182024;
+  border-radius: 43% 43% 38% 38%;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.78), transparent 20%),
+    linear-gradient(145deg, #8ce7c8 0%, #37b8a2 58%, #218d86 100%);
+  box-shadow: inset -7px -9px 0 rgba(12, 88, 88, 0.18);
+}
+
+.settings-appearance-preview.is-appearance-cat {
+  border-radius: 46% 46% 40% 40%;
+  background:
+    radial-gradient(circle at 34% 27%, rgba(255, 255, 255, 0.78), transparent 20%),
+    linear-gradient(145deg, #ffd7a8 0%, #f6a86f 58%, #d47452 100%);
+}
+
+.settings-appearance-preview.is-appearance-dog {
+  border-radius: 48% 48% 44% 44%;
+  background:
+    radial-gradient(circle at 34% 27%, rgba(255, 255, 255, 0.76), transparent 20%),
+    linear-gradient(145deg, #f0d3a2 0%, #d49a62 58%, #9b6542 100%);
+}
+
+.settings-appearance-face {
+  padding-top: 8%;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
 @keyframes pet-breathe {
   0%,
   100% {
@@ -663,5 +901,22 @@ body {
     opacity: 1;
     scale: 1;
     translate: -6px -7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-body,
+  .pet-sweat,
+  .pet-sleep-bubble {
+    animation: none;
+  }
+
+  .pet-status {
+    transition: none;
+  }
+
+  .pet-appearance-cycle:hover,
+  .pet-appearance-cycle:focus-visible {
+    transform: none;
   }
 }
