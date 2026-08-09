@@ -1320,3 +1320,9 @@
 - 前端 16 个测试和 Rust 12 个测试通过。
 - 前端生产构建、Cargo fmt/check/clippy 和 macOS Tauri release 编译通过。
 - Windows NSIS 与便携版候选包等待新 workflow 实际构建验证。
+
+### 候选包复验补充
+
+- Windows CI 已成功生成 NSIS、便携版和校验文件。
+- 下载复验发现校验文件的 CRLF 会破坏 macOS/Linux `shasum -c`，已改为无 BOM 的 LF。
+- PE 文件检查同时发现 release 主程序仍是控制台子系统；已补上 Windows GUI 子系统属性，并在打包脚本中强制校验 x86-64 与 GUI subsystem。
