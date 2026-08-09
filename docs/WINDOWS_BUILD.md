@@ -60,6 +60,8 @@ src-tauri/target/release/desktop-pet.exe
 - `Desktop-Pet_<version>_x64-setup.exe`（NSIS，当前用户安装）
 - `SHA256SUMS.txt`
 
+上传前，Windows runner 还会把 NSIS 安装到 `RUNNER_TEMP` 下的随机隔离目录，验证主程序、卸载器、HKCU 卸载项和开始菜单快捷方式，再静默卸载并确认没有安装目录、注册表项或快捷方式残留。
+
 推送与项目版本一致的 `v<version>` 标签时，该流程还会创建 GitHub Release。带连字符的版本（例如 `v0.2.0-alpha.1`）会自动标记为预发布。
 
 如果要把试用版发给别人，请先按照 [RELEASE.md](RELEASE.md) 做一次真实 Windows 冒烟测试。
