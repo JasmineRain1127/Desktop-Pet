@@ -26,43 +26,55 @@ const immediateAutomaticMoodTargets = new Set<PetMood>([
 const immediateAutomaticMoodSources = new Set<PetMood>(["sleepy", "sleeping"]);
 
 export type PetSensorSnapshot = {
-  cpuPercent: number;
-  typingRate: number;
-  idleSeconds: number;
+  cpuPercent: number | null;
+  typingRate: number | null;
+  idleSeconds: number | null;
 };
 
 export const initialSensorSnapshot: PetSensorSnapshot = {
-  cpuPercent: 18,
-  typingRate: 0,
-  idleSeconds: 18
+  cpuPercent: null,
+  typingRate: null,
+  idleSeconds: null
 };
 
 export function deriveMoodFromSensors(snapshot: PetSensorSnapshot): PetMood {
-  if (snapshot.idleSeconds >= petSensorMoodThresholds.idle.sleepingSeconds) {
+  if (
+    snapshot.idleSeconds !== null &&
+    snapshot.idleSeconds >= petSensorMoodThresholds.idle.sleepingSeconds
+  ) {
     return "sleeping";
   }
 
-  if (snapshot.idleSeconds >= petSensorMoodThresholds.idle.sleepySeconds) {
+  if (
+    snapshot.idleSeconds !== null &&
+    snapshot.idleSeconds >= petSensorMoodThresholds.idle.sleepySeconds
+  ) {
     return "sleepy";
   }
 
   if (
-    snapshot.cpuPercent >= petSensorMoodThresholds.cpu.overheated ||
-    snapshot.typingRate >= petSensorMoodThresholds.typing.overheated
+    (snapshot.cpuPercent !== null &&
+      snapshot.cpuPercent >= petSensorMoodThresholds.cpu.overheated) ||
+    (snapshot.typingRate !== null &&
+      snapshot.typingRate >= petSensorMoodThresholds.typing.overheated)
   ) {
     return "overheated";
   }
 
   if (
-    snapshot.cpuPercent >= petSensorMoodThresholds.cpu.stressed ||
-    snapshot.typingRate >= petSensorMoodThresholds.typing.stressed
+    (snapshot.cpuPercent !== null &&
+      snapshot.cpuPercent >= petSensorMoodThresholds.cpu.stressed) ||
+    (snapshot.typingRate !== null &&
+      snapshot.typingRate >= petSensorMoodThresholds.typing.stressed)
   ) {
     return "stressed";
   }
 
   if (
-    snapshot.cpuPercent >= petSensorMoodThresholds.cpu.focused ||
-    snapshot.typingRate >= petSensorMoodThresholds.typing.focused
+    (snapshot.cpuPercent !== null &&
+      snapshot.cpuPercent >= petSensorMoodThresholds.cpu.focused) ||
+    (snapshot.typingRate !== null &&
+      snapshot.typingRate >= petSensorMoodThresholds.typing.focused)
   ) {
     return "focused";
   }

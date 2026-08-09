@@ -7,58 +7,15 @@ use tauri::{AppHandle, Emitter};
 #[derive(Clone, Copy, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct SensorSnapshot {
-    cpu_percent: u8,
-    typing_rate: u16,
-    idle_seconds: u16,
+    cpu_percent: Option<u8>,
+    typing_rate: Option<u16>,
+    idle_seconds: Option<u16>,
 }
 
 const SENSOR_EVENT: &str = "sensor_snapshot";
-const MOCK_FRAMES: [SensorSnapshot; 8] = [
-    SensorSnapshot {
-        cpu_percent: 18,
-        typing_rate: 0,
-        idle_seconds: 18,
-    },
-    SensorSnapshot {
-        cpu_percent: 42,
-        typing_rate: 34,
-        idle_seconds: 0,
-    },
-    SensorSnapshot {
-        cpu_percent: 64,
-        typing_rate: 58,
-        idle_seconds: 0,
-    },
-    SensorSnapshot {
-        cpu_percent: 76,
-        typing_rate: 94,
-        idle_seconds: 0,
-    },
-    SensorSnapshot {
-        cpu_percent: 92,
-        typing_rate: 146,
-        idle_seconds: 0,
-    },
-    SensorSnapshot {
-        cpu_percent: 31,
-        typing_rate: 8,
-        idle_seconds: 135,
-    },
-    SensorSnapshot {
-        cpu_percent: 14,
-        typing_rate: 0,
-        idle_seconds: 320,
-    },
-    SensorSnapshot {
-        cpu_percent: 26,
-        typing_rate: 12,
-        idle_seconds: 45,
-    },
-];
 
 pub fn start_sensor_events(app: AppHandle) {
     thread::spawn(move || {
-        let mut frame_index = 0;
         let mut system = System::new();
         let mut typing_sampler = TypingSampler::new();
 
@@ -66,37 +23,46 @@ pub fn start_sensor_events(app: AppHandle) {
         thread::sleep(Duration::from_secs(1));
 
         loop {
-            let mock_snapshot = MOCK_FRAMES[frame_index % MOCK_FRAMES.len()];
+            let settings = crate::settings::current_settings(&app);
+            let is_paused = settings.quiet_mode;
+
+            if is_paused || !settings.typing_detection_enabled {
+                typing_sampler.reset();
+            }
+
             let snapshot = SensorSnapshot {
-                cpu_percent: read_cpu_percent(&mut system, mock_snapshot.cpu_percent),
-                typing_rate: typing_sampler
-                    .read_typing_rate()
-                    .unwrap_or(mock_snapshot.typing_rate),
-                idle_seconds: read_idle_seconds(mock_snapshot.idle_seconds),
+                cpu_percent: (!is_paused && settings.cpu_detection_enabled)
+                    .then(|| read_cpu_percent(&mut system))
+                    .flatten(),
+                typing_rate: (!is_paused && settings.typing_detection_enabled)
+                    .then(|| typing_sampler.read_typing_rate())
+                    .flatten(),
+                idle_seconds: (!is_paused && settings.idle_detection_enabled)
+                    .then(read_idle_seconds)
+                    .flatten(),
             };
 
             let _ = app.emit(SENSOR_EVENT, snapshot);
 
-            frame_index += 1;
             thread::sleep(Duration::from_secs(1));
         }
     });
 }
 
-fn read_cpu_percent(system: &mut System, fallback_cpu_percent: u8) -> u8 {
+fn read_cpu_percent(system: &mut System) -> Option<u8> {
     system.refresh_cpu_usage();
 
     let usage = system.global_cpu_usage();
 
     if !usage.is_finite() {
-        return fallback_cpu_percent;
+        return None;
     }
 
-    usage.round().clamp(0.0, 100.0) as u8
+    Some(usage.round().clamp(0.0, 100.0) as u8)
 }
 
-fn read_idle_seconds(fallback_idle_seconds: u16) -> u16 {
-    platform_idle_seconds().unwrap_or(fallback_idle_seconds)
+fn read_idle_seconds() -> Option<u16> {
+    platform_idle_seconds()
 }
 
 #[cfg(target_os = "macos")]
@@ -169,6 +135,13 @@ impl TypingSampler {
 
     fn read_typing_rate(&mut self) -> Option<u16> {
         platform_typing_rate(self)
+    }
+
+    fn reset(&mut self) {
+        #[cfg(target_os = "macos")]
+        {
+            self.previous_key_count = None;
+        }
     }
 }
 
