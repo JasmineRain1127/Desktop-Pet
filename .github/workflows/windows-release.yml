@@ -38,6 +38,28 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Validate PowerShell scripts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $hasErrors = $false
+          Get-ChildItem -LiteralPath "scripts" -Filter "*.ps1" -File | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            [Management.Automation.Language.Parser]::ParseFile(
+              $_.FullName,
+              [ref]$tokens,
+              [ref]$parseErrors
+            ) | Out-Null
+            foreach ($parseError in $parseErrors) {
+              Write-Error "$($_.Name): $($parseError.Message)"
+              $hasErrors = $true
+            }
+          }
+          if ($hasErrors) {
+            throw "PowerShell syntax validation failed."
+          }
+
       - name: Run checks and tests
         run: npm run check
 

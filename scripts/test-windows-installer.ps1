@@ -84,7 +84,7 @@ try {
   $appProcess.Refresh()
   if (-not $appProcess.HasExited) {
     Stop-Process -Id $appProcess.Id -ErrorAction Stop
-    if (-not $appProcess.WaitForExit(10_000)) {
+    if (-not $appProcess.WaitForExit(10000)) {
       throw "Installed app did not stop within ten seconds."
     }
   }
