@@ -19,7 +19,7 @@
 - 设置窗口可控制安静模式、CPU/空闲/打字检测、鼠标穿透和开机启动
 - 安静模式会暂停系统采样和普通循环动画，投喂反应仍可使用
 - 应用设置统一保存在本机配置目录，并会迁移旧版外观选择
-- GitHub Actions 自动构建 Windows `.exe`
+- GitHub Actions 自动构建 Windows 便携版 `.exe`、NSIS 安装包和 SHA-256 校验文件
 
 ## 隐私说明
 
@@ -47,6 +47,7 @@
 
 ```bash
 /opt/homebrew/bin/fnm exec npm run check
+/opt/homebrew/bin/fnm exec npm run security:audit
 ```
 
 如果需要分开定位问题，可以单独运行：
@@ -62,19 +63,18 @@
 
 ## Windows 试用版下载
 
-当前推荐先使用免安装 `.exe` 做内部试用：
+当前版本为 `0.2.0-alpha.1`。功能冒烟优先使用免安装 `.exe`；安装流程测试使用 `Windows Release` 产出的 NSIS 安装包：
 
-1. 把代码合并到 `main`
-2. 等 GitHub Actions 的 `Windows Build` 跑完
-3. 进入成功的 workflow run
-4. 在 `Artifacts` 下载 `desktop-pet-windows-exe`
-5. 解压后运行 `desktop-pet.exe`
+1. 进入 GitHub Actions，选择 `Windows Build` 或 `Windows Release`
+2. `Windows Build` 提供日常便携版 `desktop-pet.exe`
+3. `Windows Release` 提供带版本号的便携版、NSIS 安装包和 `SHA256SUMS.txt`
+4. 公开发布只允许从 `v<项目版本>` 标签触发；版本不一致会直接失败
 
 详细发布流程见 [docs/RELEASE.md](docs/RELEASE.md)，Windows 构建说明见 [docs/WINDOWS_BUILD.md](docs/WINDOWS_BUILD.md)。
 
 ## 当前限制
 
-- 暂未提供正式安装包
+- NSIS 安装包已能自动生成，仍等待 Windows 真机安装、升级和卸载验收
 - 暂未做代码签名，Windows 可能会显示安全提醒
 - 仍需在真实 Windows 10/11 机器上做完整手动验收
 - 调试面板仍作为开发入口保留在托盘菜单中
@@ -86,5 +86,5 @@
 - 整理首版试用反馈
 - 完成统一设置和传感器控制的 Windows 真机验收
 - 在 Windows 真机上验证设置损坏恢复、多显示器变化和持续过载判定
-- 做正式安装包
+- 完成 NSIS 安装、升级、卸载与便携版并存测试
 - 研究代码签名和更友好的 Windows 下载体验

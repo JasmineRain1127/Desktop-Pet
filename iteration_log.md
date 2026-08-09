@@ -1302,3 +1302,21 @@
 
 - 构建新的 Windows 产物并执行真机冒烟清单。
 - 根据第一轮内部试用反馈进入 Alpha 修复。
+
+## 2026-08-10 02:13 CST - Prepare 0.2 Alpha packaging
+
+### 修改内容
+
+- 将项目版本统一提升为 `0.2.0-alpha.1`，并增加 package、Cargo、Tauri 配置和 Git 标签一致性检查。
+- 新增 Windows Release workflow，同时生成便携版、当前用户范围 NSIS 安装包和 SHA-256 校验文件。
+- 标签构建会自动创建 GitHub Release，预发布版本自动标记 prerelease；手动运行只生成候选 artifact。
+- NSIS 默认支持简体中文与英文，使用 WebView2 下载引导器，禁止旧版本覆盖新版本。
+- 升级 Vite 并刷新兼容范围内的间接依赖，`npm audit` 从 5 个漏洞降为 0。
+- 补充 0.2 Alpha 变更日志和安装、升级、卸载测试清单。
+
+### 验证结果
+
+- 版本一致性检查通过。
+- 前端 16 个测试和 Rust 12 个测试通过。
+- 前端生产构建、Cargo fmt/check/clippy 和 macOS Tauri release 编译通过。
+- Windows NSIS 与便携版候选包等待新 workflow 实际构建验证。

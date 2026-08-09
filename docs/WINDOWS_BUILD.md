@@ -31,8 +31,8 @@ origin  git@github.com:JasmineRain1127/Desktop-Pet.git (push)
 
 ```bash
 npm ci
-npm run build
-cargo check
+npm run check
+npm run security:audit
 npm run tauri -- build --no-bundle
 ```
 
@@ -52,7 +52,15 @@ npm run tauri -- build --no-bundle
 src-tauri/target/release/desktop-pet.exe
 ```
 
-当前 CI 先上传可运行的 `.exe`。MSI/NSIS 安装包会在后续阶段单独处理，避免 WiX 安装包链路阻塞 Windows 可执行文件交付。
+日常 `Windows Build` 只上传可运行的 `.exe`，避免安装器链路阻塞快速反馈。
+
+`.github/workflows/windows-release.yml` 是候选发布流程。手动运行时会生成：
+
+- `Desktop-Pet_<version>_x64-portable.exe`
+- `Desktop-Pet_<version>_x64-setup.exe`（NSIS，当前用户安装）
+- `SHA256SUMS.txt`
+
+推送与项目版本一致的 `v<version>` 标签时，该流程还会创建 GitHub Release。带连字符的版本（例如 `v0.2.0-alpha.1`）会自动标记为预发布。
 
 如果要把试用版发给别人，请先按照 [RELEASE.md](RELEASE.md) 做一次真实 Windows 冒烟测试。
 
@@ -60,7 +68,7 @@ src-tauri/target/release/desktop-pet.exe
 
 GitHub Actions artifact 不是永久网盘。当前 workflow 会保留 Windows `.exe` 产物一段时间，适合内部试用和临时下载。
 
-如果某个版本需要长期留存，建议在 GitHub Releases 中创建一个 Release，并上传对应的 `desktop-pet.exe` 或压缩包。
+如果某个版本需要长期留存，应通过版本标签触发 `Windows Release`，由流程上传安装包、便携版和校验文件。
 
 ## 本地开发与 Windows 打包的区别
 
@@ -87,8 +95,9 @@ npm run tauri -- build --no-bundle
 先看失败步骤：
 
 - `npm ci`：通常是 lockfile 或 Node 版本问题
-- `npm run build`：通常是 TypeScript 或前端构建问题
-- `cargo check`：通常是 Rust 编译或 Windows API 调用问题
+- `npm run check`：通常是版本不一致、测试、TypeScript、Rust 格式或编译问题
+- `npm run security:audit`：npm 依赖出现已知高危漏洞
 - `npm run tauri -- build --no-bundle`：通常是 Tauri Windows release 编译问题
+- `npm run tauri -- build --bundles nsis`：通常是 NSIS 配置或安装包生成问题
 
 把失败日志贴回来即可继续修。

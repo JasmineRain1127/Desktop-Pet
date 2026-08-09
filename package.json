@@ -1,12 +1,14 @@
 {
   "name": "desktop-pet",
-  "version": "0.1.0",
+  "version": "0.2.0-alpha.1",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "check": "node scripts/check.mjs",
+    "security:audit": "npm audit --audit-level=high",
+    "version:check": "node scripts/verify-version.mjs",
     "test": "vitest",
     "test:run": "vitest run",
     "preview": "vite preview",
@@ -23,7 +25,7 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.2",
     "typescript": "5.9.3",
-    "vite": "7.3.3",
+    "vite": "7.3.6",
     "vitest": "4.1.10"
   }
 }

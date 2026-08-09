@@ -6,6 +6,11 @@ import process from "node:process";
 const env = buildProjectEnv();
 const checks = [
   {
+    label: "version consistency",
+    command: "npm",
+    args: ["run", "version:check"]
+  },
+  {
     label: "frontend tests",
     command: "npm",
     args: ["run", "test:run"]
