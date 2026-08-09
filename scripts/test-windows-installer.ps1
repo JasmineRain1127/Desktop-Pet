@@ -45,9 +45,12 @@ $uninstallRegistryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninst
 $startMenuShortcut = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\$productName.lnk"
 
 Write-Host "Silently installing into isolated directory: $installDirectory"
-& $resolvedInstaller /S "/D=$installDirectory"
-if ($LASTEXITCODE -ne 0) {
-  throw "NSIS installer exited with code $LASTEXITCODE."
+$installProcess = Start-Process -FilePath $resolvedInstaller -ArgumentList @(
+  "/S",
+  "/D=$installDirectory"
+) -Wait -PassThru
+if ($installProcess.ExitCode -ne 0) {
+  throw "NSIS installer exited with code $($installProcess.ExitCode)."
 }
 
 if (-not (Test-Path -LiteralPath $mainExecutable -PathType Leaf)) {
@@ -69,9 +72,9 @@ if (-not (Test-Path -LiteralPath $startMenuShortcut -PathType Leaf)) {
 }
 
 Write-Host "Silently uninstalling the isolated installation."
-& $uninstaller /S
-if ($LASTEXITCODE -ne 0) {
-  throw "NSIS uninstaller exited with code $LASTEXITCODE."
+$uninstallProcess = Start-Process -FilePath $uninstaller -ArgumentList "/S" -Wait -PassThru
+if ($uninstallProcess.ExitCode -ne 0) {
+  throw "NSIS uninstaller exited with code $($uninstallProcess.ExitCode)."
 }
 
 Wait-ForRemoval $mainExecutable
